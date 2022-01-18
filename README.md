@@ -1,4 +1,3 @@
-
 # Qsurface
 
 [![PyPI version](https://img.shields.io/pypi/v/qsurface?color=blue)](https://pypi.org/project/qsurface/)

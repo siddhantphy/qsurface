@@ -2,6 +2,7 @@ from ..codes.elements import Qubit
 from ._template import Sim as TemplateSim, Plot as TemplatePlot
 from typing import Optional
 import random
+from ..codes.superoperator.super_operator import SuperOperator
 
 
 class Sim(TemplateSim):
@@ -46,6 +47,18 @@ class Sim(TemplateSim):
             self.bitflip(qubit)
         elif do_phaseflip:
             self.phaseflip(qubit)
+
+    def superoperator_error_X():
+        """Applies the errors using the superoperator class and object."""
+        pass
+
+    def superoperator_error_Y():
+        """Applies the errors using the superoperator class and object."""
+        pass
+
+    def superoperator_error_Z():
+        """Applies the errors using the superoperator class and object."""
+        pass
 
     @staticmethod
     def bitflip(qubit: Qubit, **kwargs):

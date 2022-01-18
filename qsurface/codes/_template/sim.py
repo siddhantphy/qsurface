@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 import time
+from numpy import arange
 from ..elements import DataQubit, AncillaQubit, PseudoQubit, Edge, PseudoEdge
 from ...errors._template import Sim as Error
+from ..superoperator.super_operator import SuperOperator
 from typing import Any, List, Optional, Union, Tuple
 from collections import defaultdict
 import importlib
@@ -265,13 +267,127 @@ class PerfectMeasurements(ABC):
 
         """
         self.instance = time.time()
-        ordered_errors = [self.errors[name] for name in apply_order] if apply_order else self.errors.values()
+        ordered_errors = [self.errors[name] for name in apply_order] if apply_order else self.errors.values() #Getting the errors
         for error_class in ordered_errors:
             for qubit in self.data_qubits[self.layer].values():
                 error_class.random_error(qubit, **kwargs)
         if measure:
             for ancilla in self.ancilla_qubits[self.layer].values():
                 ancilla.measure()
+
+
+
+
+    def superoperator_random_errors(self):
+        self.instance = time.time()
+
+        n_stab = len(self.data_qubits)
+        plaq_stabs: list[SuperOperator]
+        star_stabs: list[SuperOperator]
+
+        superoperator = SuperOperator
+
+        plaq, star = SuperOperator.csv_to_sup(filepath="...\data\dyn441separate.csv")
+
+        for i in arange(n_stab):
+            plaq_stabs.append(superoperator.config_p_s_sup_op(plaq, star, 'p'))
+
+        for i in arange(n_stab):
+            star_stabs.append(superoperator.config_p_s_sup_op(plaq, star, 's'))
+
+        for i in arange(n_stab):
+            conf = list(plaq_stabs[i].error_config)
+            for j in arange(4):
+                if j ==0:
+                    if conf[j] == 'I':
+                        continue
+                    elif conf[j] == 'X':
+                        self.data_qubits[self.layer][i].superoperator_error_X()
+                    elif conf[j] == 'Y':
+                        self.data_qubits[self.layer][i].superoperator_error_Y()
+                    elif conf[j] == 'Z':
+                        self.data_qubits[self.layer][i].superoperator_error_Z()
+                elif j ==1:
+                    if conf[j] == 'I':
+                        continue
+                    elif conf[j] == 'X':
+                        self.data_qubits[self.layer][i + 1].superoperator_error_X()
+                    elif conf[j] == 'Y':
+                        self.data_qubits[self.layer][i + 1].superoperator_error_Y()
+                    elif conf[j] == 'Z':
+                        self.data_qubits[self.layer][i + 1].superoperator_error_Z()
+
+                elif j ==2:
+                    if conf[j] == 'I':
+                        continue
+                    elif conf[j] == 'X':
+                        self.data_qubits[self.layer][i + n_stab].superoperator_error_X()
+                    elif conf[j] == 'Y':
+                        self.data_qubits[self.layer][i + n_stab].superoperator_error_Y()
+                    elif conf[j] == 'Z':
+                        self.data_qubits[self.layer][i + n_stab].superoperator_error_Z()
+
+                elif j ==3:
+                    if conf[j] == 'I':
+                        continue
+                    elif conf[j] == 'X':
+                        self.data_qubits[self.layer][i + n_stab + 1].superoperator_error_X()
+                    elif conf[j] == 'Y':
+                        self.data_qubits[self.layer][i + n_stab + 1].superoperator_error_Y()
+                    elif conf[j] == 'Z':
+                        self.data_qubits[self.layer][i + n_stab + 1].superoperator_error_Z()
+
+
+        for i in arange(n_stab):
+            conf = list(star_stabs[i].error_config)
+            for j in arange(4):
+                if j ==0:
+                    if conf[j] == 'I':
+                        continue
+                    elif conf[j] == 'X':
+                        self.data_qubits[self.layer][i].superoperator_error_X()
+                    elif conf[j] == 'Y':
+                        self.data_qubits[self.layer][i].superoperator_error_Y()
+                    elif conf[j] == 'Z':
+                        self.data_qubits[self.layer][i].superoperator_error_Z()
+                elif j ==1:
+                    if conf[j] == 'I':
+                        continue
+                    elif conf[j] == 'X':
+                        self.data_qubits[self.layer][i + n_stab - 1].superoperator_error_X()
+                    elif conf[j] == 'Y':
+                        self.data_qubits[self.layer][i + n_stab - 1].superoperator_error_Y()
+                    elif conf[j] == 'Z':
+                        self.data_qubits[self.layer][i + n_stab - 1].superoperator_error_Z()
+
+                elif j ==2:
+                    if conf[j] == 'I':
+                        continue
+                    elif conf[j] == 'X':
+                        self.data_qubits[self.layer][i + n_stab].superoperator_error_X()
+                    elif conf[j] == 'Y':
+                        self.data_qubits[self.layer][i + n_stab].superoperator_error_Y()
+                    elif conf[j] == 'Z':
+                        self.data_qubits[self.layer][i + n_stab].superoperator_error_Z()
+
+                elif j ==3:
+                    if conf[j] == 'I':
+                        continue
+                    elif conf[j] == 'X':
+                        self.data_qubits[self.layer][i + 2*n_stab].superoperator_error_X()
+                    elif conf[j] == 'Y':
+                        self.data_qubits[self.layer][i + 2*n_stab].superoperator_error_Y()
+                    elif conf[j] == 'Z':
+                        self.data_qubits[self.layer][i + 2*n_stab].superoperator_error_Z()
+
+
+
+        for ancilla in self.ancilla_qubits[self.layer].values():
+                ancilla.measure()
+
+
+
+
 
     @staticmethod
     def _parse_boundary_coordinates(size, *args: float) -> List[float]:
