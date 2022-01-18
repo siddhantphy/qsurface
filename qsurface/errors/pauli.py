@@ -2,7 +2,7 @@ from ..codes.elements import Qubit
 from ._template import Sim as TemplateSim, Plot as TemplatePlot
 from typing import Optional
 import random
-from ..codes.superoperator.super_operator import SuperOperator
+# from ..codes.superoperator.super_operator import SuperOperator
 
 
 class Sim(TemplateSim):

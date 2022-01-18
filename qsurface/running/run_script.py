@@ -6,8 +6,8 @@ print(code)
 
 # run(code, decoder, iterations=10, error_rates = {"p_bitflip": 0.1})
 
-import sys
-print(sys.path)
+# import sys
+# print(sys.path)
 
 import qsurface
 print(qsurface.__file__)

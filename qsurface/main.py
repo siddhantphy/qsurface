@@ -20,7 +20,7 @@ size_type = Union[Tuple[int, int], int]
 errors_type = List[Union[str, Error]]
 code_type = codes._template.sim.PerfectMeasurements
 decoder_type = decoders._template.Sim
-superoperator_type = codes.superoperator.super_operator.SuperOperator
+# superoperator_type = codes.superoperator.super_operator.SuperOperator
 
 def crap():
     print("This function is useless")
