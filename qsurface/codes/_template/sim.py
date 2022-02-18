@@ -235,23 +235,48 @@ class PerfectMeasurements(ABC):
                     measurement_error = bool(list(plaq.iloc[choose])[2]) # Use the above to extract the measurement value as bool out of the above list generated from the row of plaq or star
                     error_config = str(list(plaq.iloc[choose])[1]) # Similar logic as above to get the error configuration as string
                     self.plaquettes[current_layer][location] = [error_config, measurement_error]
-
+ 
         # print(self.stars)
         # print(self.plaquettes)
                             
         return
 
     def stabilizer_error_mapping_superoperator(self):
+        """ Calculates and assigns the corresponding error configuration for all the data qubits in all layers (except the final layer). Stores them as a dictionary of dictionary with layers and locations of data qubits. And the errors are stored as strings against the corresponding data qubit locations.
+        
+        Parameters
+        ----------
+        None
+        """
+        # First loop to get the locations of the data qubits in the right order and make template to store the error strings. It is enough to do it once only.
         for current_layer in range(self.layers):
             self.apply_superoperator_errors[current_layer] = {}
-            print(current_layer)
-            for location, conf in self.stars[current_layer].items():
-                print(conf[0])
-                print(list(self.ancilla_qubits[current_layer][location].parity_qubits.keys()))
-                # print(type(list(ancilla.parity_qubits.values())[0]))
+            for anc_loc, conf in self.stars[current_layer].items():
+                for parity_qubit, index in zip(self.ancilla_qubits[current_layer][anc_loc].parity_qubits.values(), range(len(self.ancilla_qubits[current_layer][anc_loc].parity_qubits.values()))):
+                    self.apply_superoperator_errors[current_layer][parity_qubit.loc] = ''
+
+        # Second loop to fill up the template with the actual error strings derived from the error configurations. For stars.
+        for current_layer in range(self.layers):
+            for anc_loc, conf in self.stars[current_layer].items():
+                for parity_qubit, index in zip(self.ancilla_qubits[current_layer][anc_loc].parity_qubits.values(), range(len(self.ancilla_qubits[current_layer][anc_loc].parity_qubits.values()))):
+                    if conf[0][index] != 'I':
+                        self.apply_superoperator_errors[current_layer][parity_qubit.loc] += conf[0][index]
+
+        # Second loop to fill up the template with the actual error strings derived from the error configurations. For plaquettes.
+        for current_layer in range(self.layers):
+            for anc_loc, conf in self.plaquettes[current_layer].items():
+                for parity_qubit, index in zip(self.ancilla_qubits[current_layer][anc_loc].parity_qubits.values(), range(len(self.ancilla_qubits[current_layer][anc_loc].parity_qubits.values()))):
+                    if conf[0][index] != 'I':
+                        self.apply_superoperator_errors[current_layer][parity_qubit.loc] += conf[0][index]
+
+        for current_layer in range(self.layers):
+            for loc, err in self.apply_superoperator_errors[current_layer].items():
+                if err == '':
+                     self.apply_superoperator_errors[current_layer][loc] = None
+
+        # print(self.apply_superoperator_errors)
+        
                 
-
-
 
     """
     ----------------------------------------------------------------------------------------

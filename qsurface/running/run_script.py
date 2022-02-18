@@ -4,7 +4,7 @@ from qsurface.decoders import mwpm
 
 
 # code, decoder = initialize((2,2), "toric", "mwpm",enabled_errors=["pauli"], faulty_measurements=True, superoperator_enabled=False, sup_file="data/eg_sup.csv")
-code, decoder = initialize((2,2), "toric", "mwpm", superoperator_enable=True, sup_op_file="data/eg_sup.csv")
+code, decoder = initialize((4,4), "toric", "mwpm", superoperator_enable=True, sup_op_file="data/eg_sup.csv")
 
 
 # def tracefunc(frame, event, arg, indent=[0]):
