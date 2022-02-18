@@ -48,18 +48,6 @@ class Sim(TemplateSim):
         elif do_phaseflip:
             self.phaseflip(qubit)
 
-    def superoperator_error_X():
-        """Applies the errors using the superoperator class and object."""
-        pass
-
-    def superoperator_error_Y():
-        """Applies the errors using the superoperator class and object."""
-        pass
-
-    def superoperator_error_Z():
-        """Applies the errors using the superoperator class and object."""
-        pass
-
     @staticmethod
     def bitflip(qubit: Qubit, **kwargs):
         """Applies a bitflip or Pauli X on ``qubit``."""

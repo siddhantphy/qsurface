@@ -1,12 +1,15 @@
 from abc import ABC, abstractmethod
+from distutils.command.config import config
 import time
-from numpy import arange
+import numpy as np
+import pandas as pd
+from decimal import Decimal
 from ..elements import DataQubit, AncillaQubit, PseudoQubit, Edge, PseudoEdge
 from ...errors._template import Sim as Error
-# from ..superoperator.super_operator import SuperOperator
 from typing import Any, List, Optional, Union, Tuple
 from collections import defaultdict
 import importlib
+import random
 
 
 class PerfectMeasurements(ABC):
@@ -62,13 +65,17 @@ class PerfectMeasurements(ABC):
 
     def __init__(
         self,
-        size: Union[int, Tuple[int, int]],
+        size: Union[int, Tuple[int, int]], superoperator_enabled = False,
         **kwargs,
     ):
         self.layer = 0
         self.layers = 1
         self.decode_layer = 0
         self.size = size if type(size) == tuple else (size, size)
+        self.superoperator_enabled = superoperator_enabled # Added the superoperator functionality
+        self.stars = {}
+        self.plaquettes = {}
+        self.apply_superoperator_errors = {}
         self.no_error = True
         self.ancilla_qubits = {}
         self.data_qubits = {}
@@ -115,14 +122,21 @@ class PerfectMeasurements(ABC):
     ----------------------------------------------------------------------------------------
     """
 
-    def initialize(self, *args, **kwargs):
+    def initialize(self, *args, sup_file = "NA", **kwargs):
         """Initializes all data objects of the code.
 
         Builds the surface with `init_surface`, adds the logical operators with `init_logical_operator`, and loads error modules with `init_errors`. All keyword arguments from these methods can be used for `initialize`.
         """
+        # print(f"testing file:{sup_file}")
+        if sup_file != "NA":
+            self.superoperator_enabled = True
+
         self.init_surface(**kwargs)
         self.init_logical_operator(**kwargs)
-        self.init_errors(*args, **kwargs)
+        if self.superoperator_enabled:
+            self.init_superoperator_errors(sup_file=sup_file)
+        else:
+            self.init_errors(*args, **kwargs)
 
     @abstractmethod
     def init_surface(self):
@@ -170,6 +184,74 @@ class PerfectMeasurements(ABC):
         """Initializes the ``error_module.Sim`` class of a error module."""
         error_type = error_module.__name__.split(".")[-1]
         self.errors[error_type] = error_module.Sim(self, **error_rates)
+        # print(self.errors)
+
+    def init_superoperator_errors(self, sup_file, *args, **kwargs):
+        """Initiates the errors from the superoperator CSV file!"""
+        plaq_data, star_data = self.initialize_csv_to_sup(filepath=sup_file)
+        self.config_star_plaq_superoperator(plaq_data, star_data)
+        self.stabilizer_error_mapping_superoperator()
+
+    def initialize_csv_to_sup(self, filepath="NA"):
+        """Reads the CSV file for superoperator and returns the pandas dataframe for plaquettes and stars as the output. They contain the fidelity and measurement errors."""
+        # print(f"blabla{filepath}")
+        sup_op_data = pd.read_csv(filepath, sep = ';')
+        plaq = sup_op_data.loc[:, ['p', 'error_config', 'lie']]
+        star = sup_op_data.loc[:, ['s', 'error_config', 'lie']]
+
+        return plaq, star
+
+    def config_star_plaq_superoperator(self, plaq, star):   
+        """ Calculates and assigns the corresponding fidelity and error configuration for a given superoperator stabilizer type. This function is eventually called for all stabilizers.
+        
+        Parameters
+        ----------
+        plaq: pandas.DataFrame
+            Pandas dataframe that contains the fidelity and measurement error for each plaquette.
+
+        star: pandas.DataFrame
+            Pandas dataframe that contains the fidelity and measurement error for each star.
+        """
+
+        """ Extract the fidelities of the corresponding stabilizer types and assigns them to a dictionary with layers anad locations."""
+        # print(list(np.arange(len(star.index))))
+        plaq_fidelity = list(plaq.loc[:, 'p'])
+        star_fidelity = list(star.loc[:, 's'])
+        # print(len(star_fidelity))
+
+        for current_layer in range(self.layers):
+            self.stars[current_layer] = {}
+            self.plaquettes[current_layer] = {}
+            # print(current_layer)
+            for location in self.ancilla_qubits[current_layer].keys():
+                if location[0] % 1 == 0 and location[1] % 1 == 0: # Stars are at natural numbered indices
+                    choose = int(random.choices(list(np.arange(len(star.index))), weights = star_fidelity)[0]) #Choose the index based on fidelity as the weight
+                    measurement_error = bool(list(star.iloc[choose])[2]) # Use the above to extract the measurement value as bool out of the above list generated from the row of plaq or star
+                    error_config = str(list(star.iloc[choose])[1]) # Similar logic as above to get the error configuration as string
+                    self.stars[current_layer][location] = [error_config, measurement_error]
+
+                if location[0] % 1 != 0 and location[1] % 1 != 0: # Plaquettes are at decimal indices
+                    choose = int(random.choices(list(np.arange(len(plaq.index))), weights = plaq_fidelity)[0]) #Choose the index based on fidelity as the weight
+                    measurement_error = bool(list(plaq.iloc[choose])[2]) # Use the above to extract the measurement value as bool out of the above list generated from the row of plaq or star
+                    error_config = str(list(plaq.iloc[choose])[1]) # Similar logic as above to get the error configuration as string
+                    self.plaquettes[current_layer][location] = [error_config, measurement_error]
+
+        # print(self.stars)
+        # print(self.plaquettes)
+                            
+        return
+
+    def stabilizer_error_mapping_superoperator(self):
+        for current_layer in range(self.layers):
+            self.apply_superoperator_errors[current_layer] = {}
+            print(current_layer)
+            for location, conf in self.stars[current_layer].items():
+                print(conf[0])
+                print(list(self.ancilla_qubits[current_layer][location].parity_qubits.keys()))
+                # print(type(list(ancilla.parity_qubits.values())[0]))
+                
+
+
 
     """
     ----------------------------------------------------------------------------------------
@@ -275,120 +357,6 @@ class PerfectMeasurements(ABC):
             for ancilla in self.ancilla_qubits[self.layer].values():
                 ancilla.measure()
 
-
-
-
-    # def superoperator_random_errors(self):
-    #     self.instance = time.time()
-
-    #     n_stab = len(self.data_qubits)
-    #     plaq_stabs: list[SuperOperator]
-    #     star_stabs: list[SuperOperator]
-
-    #     superoperator = SuperOperator
-
-    #     plaq, star = SuperOperator.csv_to_sup(filepath="...\data\dyn441separate.csv")
-
-    #     for i in arange(n_stab):
-    #         plaq_stabs.append(superoperator.config_p_s_sup_op(plaq, star, 'p'))
-
-    #     for i in arange(n_stab):
-    #         star_stabs.append(superoperator.config_p_s_sup_op(plaq, star, 's'))
-
-    #     for i in arange(n_stab):
-    #         conf = list(plaq_stabs[i].error_config)
-    #         for j in arange(4):
-    #             if j ==0:
-    #                 if conf[j] == 'I':
-    #                     continue
-    #                 elif conf[j] == 'X':
-    #                     self.data_qubits[self.layer][i].superoperator_error_X()
-    #                 elif conf[j] == 'Y':
-    #                     self.data_qubits[self.layer][i].superoperator_error_Y()
-    #                 elif conf[j] == 'Z':
-    #                     self.data_qubits[self.layer][i].superoperator_error_Z()
-    #             elif j ==1:
-    #                 if conf[j] == 'I':
-    #                     continue
-    #                 elif conf[j] == 'X':
-    #                     self.data_qubits[self.layer][i + 1].superoperator_error_X()
-    #                 elif conf[j] == 'Y':
-    #                     self.data_qubits[self.layer][i + 1].superoperator_error_Y()
-    #                 elif conf[j] == 'Z':
-    #                     self.data_qubits[self.layer][i + 1].superoperator_error_Z()
-
-    #             elif j ==2:
-    #                 if conf[j] == 'I':
-    #                     continue
-    #                 elif conf[j] == 'X':
-    #                     self.data_qubits[self.layer][i + n_stab].superoperator_error_X()
-    #                 elif conf[j] == 'Y':
-    #                     self.data_qubits[self.layer][i + n_stab].superoperator_error_Y()
-    #                 elif conf[j] == 'Z':
-    #                     self.data_qubits[self.layer][i + n_stab].superoperator_error_Z()
-
-    #             elif j ==3:
-    #                 if conf[j] == 'I':
-    #                     continue
-    #                 elif conf[j] == 'X':
-    #                     self.data_qubits[self.layer][i + n_stab + 1].superoperator_error_X()
-    #                 elif conf[j] == 'Y':
-    #                     self.data_qubits[self.layer][i + n_stab + 1].superoperator_error_Y()
-    #                 elif conf[j] == 'Z':
-    #                     self.data_qubits[self.layer][i + n_stab + 1].superoperator_error_Z()
-
-
-    #     for i in arange(n_stab):
-    #         conf = list(star_stabs[i].error_config)
-    #         for j in arange(4):
-    #             if j ==0:
-    #                 if conf[j] == 'I':
-    #                     continue
-    #                 elif conf[j] == 'X':
-    #                     self.data_qubits[self.layer][i].superoperator_error_X()
-    #                 elif conf[j] == 'Y':
-    #                     self.data_qubits[self.layer][i].superoperator_error_Y()
-    #                 elif conf[j] == 'Z':
-    #                     self.data_qubits[self.layer][i].superoperator_error_Z()
-    #             elif j ==1:
-    #                 if conf[j] == 'I':
-    #                     continue
-    #                 elif conf[j] == 'X':
-    #                     self.data_qubits[self.layer][i + n_stab - 1].superoperator_error_X()
-    #                 elif conf[j] == 'Y':
-    #                     self.data_qubits[self.layer][i + n_stab - 1].superoperator_error_Y()
-    #                 elif conf[j] == 'Z':
-    #                     self.data_qubits[self.layer][i + n_stab - 1].superoperator_error_Z()
-
-    #             elif j ==2:
-    #                 if conf[j] == 'I':
-    #                     continue
-    #                 elif conf[j] == 'X':
-    #                     self.data_qubits[self.layer][i + n_stab].superoperator_error_X()
-    #                 elif conf[j] == 'Y':
-    #                     self.data_qubits[self.layer][i + n_stab].superoperator_error_Y()
-    #                 elif conf[j] == 'Z':
-    #                     self.data_qubits[self.layer][i + n_stab].superoperator_error_Z()
-
-    #             elif j ==3:
-    #                 if conf[j] == 'I':
-    #                     continue
-    #                 elif conf[j] == 'X':
-    #                     self.data_qubits[self.layer][i + 2*n_stab].superoperator_error_X()
-    #                 elif conf[j] == 'Y':
-    #                     self.data_qubits[self.layer][i + 2*n_stab].superoperator_error_Y()
-    #                 elif conf[j] == 'Z':
-    #                     self.data_qubits[self.layer][i + 2*n_stab].superoperator_error_Z()
-
-
-
-    #     for ancilla in self.ancilla_qubits[self.layer].values():
-    #             ancilla.measure()
-
-
-
-
-
     @staticmethod
     def _parse_boundary_coordinates(size, *args: float) -> List[float]:
         """Parse two locations on the lattice.
@@ -420,12 +388,13 @@ class FaultyMeasurements(PerfectMeasurements):
         self,
         size,
         *args,
+        superoperator_enabled = False,
         layers: Optional[int] = None,
         p_bitflip_plaq: float = 0,
         p_bitflip_star: float = 0,
         **kwargs,
     ):
-        super().__init__(size, *args, **kwargs)
+        super().__init__(size, superoperator_enabled, *args, **kwargs)
 
         if layers:
             self.layers = layers
@@ -556,6 +525,207 @@ class FaultyMeasurements(PerfectMeasurements):
             Keyword arguments are passed on to `~.codes.elements.AncillaQubit.get_state`.
         """
         for ancilla in self.ancilla_qubits[self.layer].values():
+            # i=0
+            # print(f"######## iteration {i}")
+            # print(f'layer:{self.layer}')
+            # print(ancilla.parity_qubits)
+            # print(ancilla.parity_qubits.values())
+            # print(f"######## iteration {i}")
+            # i+=1
             previous_ancilla = self.ancilla_qubits[(ancilla.z - 1) % self.layers][ancilla.loc]
             measured_state = ancilla.measure(**kwargs)
             ancilla.syndrome = measured_state != previous_ancilla.measured_state
+
+
+
+class SuperOperator(FaultyMeasurements):
+    """ Superoperator class to obtain error syndrome in the formalism of superoperator. Superoperator data is obtained via a CSV file which can be generated via other available codes.
+    
+    Parameters
+    ----------
+    None
+
+    Object Attributes
+    ----------
+    stabilizer_type: str
+        To categorize the plaquette stabilizer as plaquette and star (vertex) as star type, with 'p' and 's' respectively. Every stabilizer is either 'p' or 's' type.
+    
+    plaq_rate: float
+        The fidelity of the plaquette stabilizer with given error configuration, in the superoperator.
+    
+    star_rate: float
+        The fidelity of the star stabilizer with given error configuration, in the superoperator.
+    
+    error_config: str 
+        The error configuration on the involved data qubits as a string of the {I, X, Y, Z} elements for each qubits in ordered fashion.
+    
+    measurement_error: bool
+        Indicates whether there is a measurement error for the particular stabilizer upon measurement.
+    """
+
+    def __init__(self,
+        size, *args, layers: Optional[int] = None, p_bitflip_plaq: float = 0, p_bitflip_star: float = 0, **kwargs,):
+        """Initializes the superoperator object with default (physically ideal) values."""
+
+        super().__init__(size, *args, **kwargs)
+
+        self.size = size if type(size) == tuple else (size, size)
+
+        self.plaquettes = {}
+        self.stars = {}
+
+    """
+    ----------------------------------------------------------------------------------------
+                                        Main functions
+    ----------------------------------------------------------------------------------------
+    """
+
+    def initialize_superoperator(self, filepath="NA"):
+        """Initiates the surface code.
+
+        The 3D lattice is initialized by first building the ground layer. After that each consecutive layer is built and pseudo-edges are added to connect the ancilla qubits of each layer.
+        """
+        super().init_surface()
+        plaq_data, star_data = self.initialize_csv_to_sup(filepath)
+        self.config_p_s_sup_op(plaq_data, star_data)
+        
+        pass
+
+    def initialize_csv_to_sup(self, filepath=""):
+        """Reads the CSV file for superoperator and returns the pandas dataframe for plaquettes and stars as the output. They contain the fidelity and measurement errors. 
+        """
+
+        file_path = filepath
+        sup_op_data = pd.read_csv(file_path, sep = ';')
+
+        plaq = sup_op_data.loc[:, ['p', 'error_config', 'lie']]
+        star = sup_op_data.loc[:, ['s', 'error_config', 'lie']]
+
+        return plaq, star
+
+    def config_p_s_sup_op(self, plaq, star, stab_type: str = ''):   
+        """ Calculates and assigns the corresponding fidelity and error configuration for a given superoperator stabilizer type. This function is eventually called for all stabilizers.
+        
+        Parameters
+        ----------
+        plaq: pandas.DataFrame
+            Pandas dataframe that contains the fidelity and measurement error for each plaquette.
+
+        star: pandas.DataFrame
+            Pandas dataframe that contains the fidelity and measurement error for each star.
+
+        stab_type: str
+            Takes information on whether we want to implement a plaquette or star type superoperator term for a particular stabilizer.
+        """
+
+        self.stabilizer_type = stab_type
+
+        plaq = plaq
+        star = star
+
+        """ Extract the fidelities of the corresponding stabilizer types, below."""
+
+        plaq_er = list(plaq.loc[:, 'p'])
+        star_er = list(star.loc[:, 's'])
+
+        for i in list(range(self.size[0]*self.size[1])):
+            choose = int(random.choices(list(np.arange(len(plaq.index))), weights = plaq_er)[0]) #Choose the index based on fidelity as the weight
+            measurement_error = bool(list(plaq.iloc[choose])[2]) # Use the above to extract the measurement value as bool out of the above list generated from the row of plaq or star
+            error_config = str(list(plaq.iloc[choose])[1]) # Similar logic as above to get the error configuration as string
+
+            self.plaquettes[f"p{i+1}"] = [error_config, measurement_error]
+
+        for i in list(range(self.size[0]*self.size[1])):
+            choose = int(random.choices(list(np.arange(len(star.index))), weights = star_er)[0]) #Choose the index based on fidelity as the weight
+            measurement_error = bool(list(star.iloc[choose])[2]) # Use the above to extract the measurement value as bool out of the above list generated from the row of plaq or star
+            error_config = str(list(star.iloc[choose])[1]) # Similar logic as above to get the error configuration as string
+
+            self.stars[f"s{i+1}"] = [error_config, measurement_error]
+                            
+        return
+
+    def sup_random_errors_and_measurement(self, **kwargs):
+        for ancilla in self.ancilla_qubits[self.layers - 1].values():
+            ancilla.measured_state = False
+        for z in range(self.layers - 1):
+            self.layer = z
+            self.sup_random_errors_layer(**kwargs)
+            self.sup_random_measure_layer()
+
+
+    def sup_random_errors_layer(self, **kwargs):
+        for data in self.data_qubits[self.layer].values():
+            data.state = self.data_qubits[(self.layer - 1) % self.layers][data.loc].state
+        self.instance = time.time()
+        
+        for stabilizers in self.plaquettes.values():
+            pass
+
+
+    def sup_random_measure_layer(self, **kwargs):
+        for ancilla in self.ancilla_qubits[self.layer].values():
+            previous_ancilla = self.ancilla_qubits[(ancilla.z - 1) % self.layers][ancilla.loc]
+            measured_state = ancilla.measure(**kwargs)
+            ancilla.syndrome = measured_state != previous_ancilla.measured_state
+
+
+    # def superoperator_random_errors(self):
+    #     self.instance = time.time()
+
+    #     n_stab = len(self.data_qubits)
+    #     plaq_stabs: list[SuperOperator]
+    #     star_stabs: list[SuperOperator]
+
+    #     superoperator = SuperOperator
+
+    #     plaq, star = SuperOperator.csv_to_sup(filepath="...\data\dyn441separate.csv")
+
+    #     for i in arange(n_stab):
+    #         plaq_stabs.append(superoperator.config_p_s_sup_op(plaq, star, 'p'))
+
+    #     for i in arange(n_stab):
+    #         star_stabs.append(superoperator.config_p_s_sup_op(plaq, star, 's'))
+
+    #     for i in arange(n_stab):
+    #         conf = list(plaq_stabs[i].error_config)
+    #         for j in arange(4):
+    #             if j ==0:
+    #                 if conf[j] == 'I':
+    #                     continue
+    #                 elif conf[j] == 'X':
+    #                     self.data_qubits[self.layer][i].superoperator_error_X()
+    #                 elif conf[j] == 'Y':
+    #                     self.data_qubits[self.layer][i].superoperator_error_Y()
+    #                 elif conf[j] == 'Z':
+    #                     self.data_qubits[self.layer][i].superoperator_error_Z()
+    #             elif j ==1:
+    #                 if conf[j] == 'I':
+    #                     continue
+    #                 elif conf[j] == 'X':
+    #                     self.data_qubits[self.layer][i + 1].superoperator_error_X()
+    #                 elif conf[j] == 'Y':
+    #                     self.data_qubits[self.layer][i + 1].superoperator_error_Y()
+    #                 elif conf[j] == 'Z':
+    #                     self.data_qubits[self.layer][i + 1].superoperator_error_Z()
+
+    #             elif j ==2:
+    #                 if conf[j] == 'I':
+    #                     continue
+    #                 elif conf[j] == 'X':
+    #                     self.data_qubits[self.layer][i + n_stab].superoperator_error_X()
+    #                 elif conf[j] == 'Y':
+    #                     self.data_qubits[self.layer][i + n_stab].superoperator_error_Y()
+    #                 elif conf[j] == 'Z':
+    #                     self.data_qubits[self.layer][i + n_stab].superoperator_error_Z()
+
+    #             elif j ==3:
+    #                 if conf[j] == 'I':
+    #                     continue
+    #                 elif conf[j] == 'X':
+    #                     self.data_qubits[self.layer][i + n_stab + 1].superoperator_error_X()
+    #                 elif conf[j] == 'Y':
+    #                     self.data_qubits[self.layer][i + n_stab + 1].superoperator_error_Y()
+    #                 elif conf[j] == 'Z':
+    #                     self.data_qubits[self.layer][i + n_stab + 1].superoperator_error_Z()
+
+

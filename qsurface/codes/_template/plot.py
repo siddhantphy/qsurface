@@ -501,3 +501,7 @@ class FaultyMeasurements(PerfectMeasurements, TemplateSimFM):
             # Inherited docstring
             for z in range(self.code.layers):
                 super()._plot_surface(z)
+
+
+# class SuperOperator(FaultyMeasurements, TemplateSimFM):
+#     pass

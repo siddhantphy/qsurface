@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple, Union
 from collections import defaultdict
 from functools import wraps
 from multiprocessing import Process, Queue, cpu_count
+import sys
 import timeit
 import random
 import numpy
@@ -20,10 +21,8 @@ size_type = Union[Tuple[int, int], int]
 errors_type = List[Union[str, Error]]
 code_type = codes._template.sim.PerfectMeasurements
 decoder_type = decoders._template.Sim
-# superoperator_type = codes.superoperator.super_operator.SuperOperator
+superoperator_type = codes._template.sim.SuperOperator
 
-def crap():
-    print("This function is useless")
 
 def initialize(
     size: size_type,
@@ -31,8 +30,8 @@ def initialize(
     Decoder: module_or_name,
     enabled_errors: errors_type = [],
     faulty_measurements: bool = False,
-    superoperator_enabled: bool = False,
-    Superoperator: str = "NA",
+    superoperator_enable: bool = False,
+    sup_op_file: str = "NA",
     plotting: bool = False,
     **kwargs,
 ):
@@ -80,47 +79,43 @@ def initialize(
         >>> initialize((6,6), "toric", "unionfind", enabled_errors=enabled_errors, **code_kwargs, **decoder_kwargs)
         ✅ This decoder is compatible with the code.
     """
-    print("step 0 ")
 
     if isinstance(Code, str):
         Code = getattr(codes, Code)
     Code_flow = getattr(Code, "plot") if plotting else getattr(Code, "sim")
 
-    if superoperator_enabled:
-        if isinstance(Superoperator, str):
-            sup_file = Superoperator
-            Superoperator = getattr(Superoperator, codes)
-            Superoperator_flow = getattr(Superoperator, "plot") if plotting else getattr(Superoperator, "SuperOperator")
-            superoperator = Superoperator_flow(size, sup_file **kwargs)
+    if superoperator_enable or faulty_measurements:
         Code_flow_dim = getattr(Code_flow, "FaultyMeasurements")
-        print("step 1 ")
+        # if isinstance(sup_file, str):
+        #     Code_flow_dim = getattr(Code_flow, "SuperOperator")
     else:
-        Code_flow_dim = (
-        getattr(Code_flow, "FaultyMeasurements") if faulty_measurements else getattr(Code_flow, "PerfectMeasurements"))
+        Code_flow_dim = getattr(Code_flow, "PerfectMeasurements")
+        # Code_flow_dim = (
+        # getattr(Code_flow, "FaultyMeasurements") if faulty_measurements else getattr(Code_flow, "PerfectMeasurements"))
+        # print(Code_flow_dim)
 
     if isinstance(Decoder, str):
         Decoder = getattr(decoders, Decoder)
     Decoder_flow = getattr(Decoder, "plot") if plotting else getattr(Decoder, "sim")
     Decoder_flow_code = getattr(Decoder_flow, Code.__name__.split(".")[-1].capitalize())
 
-    code = Code_flow_dim(size, **kwargs)
+    if superoperator_enable:
+        code = Code_flow_dim(size, superopertor_enabled = True, **kwargs) # Corresponding class created which is eventually inherited from PerfectMeasurements and is initialized by this line
+    else:
+        code = Code_flow_dim(size, **kwargs)
 
-    if superoperator_enabled:
-        print("step 2 ")
-        pass # Make the superoperator initialization
+    if superoperator_enable:
+        if sup_op_file == "NA":
+            print("Provide the corresponding superoperator CSV file path!")
+            sys.exit(1)
+        else:
+            code.initialize(sup_file=sup_op_file, **kwargs)
     else:
         code.initialize(*enabled_errors, **kwargs) # Enabled errors passed to the PM/FM classes accordingly
 
     decoder = Decoder_flow_code(code, **kwargs)
 
-    # return code, decoder, superoperator if superoperator_enabled else code, decoder 
-    print("test superoperator")
-    if superoperator_enabled:
-        print("step 3 ")
-        return code, decoder, superoperator
-    else:
-        print("Step 4 ")
-        return code, decoder 
+    return code, decoder 
 
 
 def run(
