@@ -3,7 +3,7 @@ from distutils.command.config import config
 import time
 import numpy as np
 import pandas as pd
-from decimal import Decimal
+import copy
 from ..elements import DataQubit, AncillaQubit, PseudoQubit, Edge, PseudoEdge
 from ...errors._template import Sim as Error
 from typing import Any, List, Optional, Union, Tuple
@@ -262,20 +262,27 @@ class PerfectMeasurements(ABC):
                     if conf[0][index] != 'I':
                         self.apply_superoperator_errors[current_layer][parity_qubit.loc] += conf[0][index]
 
-        # Second loop to fill up the template with the actual error strings derived from the error configurations. For plaquettes.
+        # Third loop to fill up the template with the actual error strings derived from the error configurations. For plaquettes.
         for current_layer in range(self.layers):
             for anc_loc, conf in self.plaquettes[current_layer].items():
                 for parity_qubit, index in zip(self.ancilla_qubits[current_layer][anc_loc].parity_qubits.values(), range(len(self.ancilla_qubits[current_layer][anc_loc].parity_qubits.values()))):
                     if conf[0][index] != 'I':
                         self.apply_superoperator_errors[current_layer][parity_qubit.loc] += conf[0][index]
 
+        temp_err_data = copy.deepcopy(self.apply_superoperator_errors) # copying to clean up the no-error locations and only keep the error entries
+
         for current_layer in range(self.layers):
             for loc, err in self.apply_superoperator_errors[current_layer].items():
                 if err == '':
-                     self.apply_superoperator_errors[current_layer][loc] = None
+                     del temp_err_data[current_layer][loc] # Delete the no-error entries from the dictionary
+
+        self.apply_superoperator_errors = temp_err_data
+
+        for current_layer in range(self.layers):
+            if self.apply_superoperator_errors[current_layer] == {}:
+                self.apply_superoperator_errors[current_layer] = None
 
         # print(self.apply_superoperator_errors)
-        
                 
 
     """
