@@ -86,13 +86,8 @@ def initialize(
 
     if superoperator_enable or faulty_measurements:
         Code_flow_dim = getattr(Code_flow, "FaultyMeasurements")
-        # if isinstance(sup_file, str):
-        #     Code_flow_dim = getattr(Code_flow, "SuperOperator")
     else:
         Code_flow_dim = getattr(Code_flow, "PerfectMeasurements")
-        # Code_flow_dim = (
-        # getattr(Code_flow, "FaultyMeasurements") if faulty_measurements else getattr(Code_flow, "PerfectMeasurements"))
-        # print(Code_flow_dim)
 
     if isinstance(Decoder, str):
         Decoder = getattr(decoders, Decoder)
@@ -109,9 +104,10 @@ def initialize(
             print("Provide the corresponding superoperator CSV file path!")
             sys.exit(1)
         else:
-            code.initialize(sup_file=sup_op_file, **kwargs)
+            code.initialize(sup_op_file, **kwargs)
     else:
-        code.initialize(*enabled_errors, **kwargs) # Enabled errors passed to the PM/FM classes accordingly
+        # print("TESTING1")
+        code.initialize("NA", *enabled_errors, **kwargs) # Enabled errors passed to the PM/FM classes accordingly
 
     decoder = Decoder_flow_code(code, **kwargs)
 

@@ -1,3 +1,4 @@
+from asynchat import simple_producer
 from typing import List, Optional
 from matplotlib.artist import Artist
 from matplotlib.lines import Line2D
@@ -17,11 +18,11 @@ class PerfectMeasurements(TemplateSimPM):
         Figure object of the current code.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, superoperator_enabled = False, *args, **kwargs) -> None:
+        super().__init__(superoperator_enabled,*args, **kwargs)
         self.figure = self.Figure(self, **kwargs)
 
-    def initialize(self, *args, **kwargs):
+    def initialize(self, sup_file = "NA", *args, **kwargs):
         """Initializes the code with a figure. Also takes keyword arguments for `~.codes._template.plot.PerfectMeasurements.Figure.init_plot`.
 
         Since each error object delivers extra plot properties to the figure, which are dependent on the ``self.params`` values in the figure itself, we must initialize in the following sequence.
@@ -30,7 +31,14 @@ class PerfectMeasurements(TemplateSimPM):
         - Initialize lattice, error initialization must have figure properties
         - Draw figure with plot elements from errors
         """
-        super().initialize(*args, **kwargs)
+        # print("Plot class called!")
+        # print(sup_file)
+        if sup_file != "NA":
+            print(sup_file)
+            super().initialize(sup_file, *args, **kwargs)
+        else:   
+            # print("TESTING")
+            super().initialize("NA", *args, **kwargs)
         self.figure.init_plot(**kwargs)
         self.figure.draw_figure("Initial")
 
@@ -404,9 +412,9 @@ class FaultyMeasurements(PerfectMeasurements, TemplateSimFM):
 
     """
 
-    def __init__(self, *args, figure3d: bool = True, **kwargs) -> None:
+    def __init__(self, *args, superoperator_enabled = False, figure3d: bool = True, **kwargs) -> None:
         self.figure3d = figure3d
-        TemplateSimFM.__init__(self, *args, **kwargs)
+        TemplateSimFM.__init__(self, *args, **kwargs, superoperator_enabled = False)
         self.figure = self.Figure3D(self, **kwargs) if figure3d else self.Figure2D(self, **kwargs)
 
     def random_errors(self, **kwargs):
@@ -501,7 +509,3 @@ class FaultyMeasurements(PerfectMeasurements, TemplateSimFM):
             # Inherited docstring
             for z in range(self.code.layers):
                 super()._plot_surface(z)
-
-
-# class SuperOperator(FaultyMeasurements, TemplateSimFM):
-#     pass
