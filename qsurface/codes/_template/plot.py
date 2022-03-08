@@ -31,13 +31,9 @@ class PerfectMeasurements(TemplateSimPM):
         - Initialize lattice, error initialization must have figure properties
         - Draw figure with plot elements from errors
         """
-        # print("Plot class called!")
-        # print(sup_file)
         if sup_file != "NA":
-            print(sup_file)
             super().initialize(sup_file, *args, **kwargs)
         else:   
-            # print("TESTING")
             super().initialize("NA", *args, **kwargs)
         self.figure.init_plot(**kwargs)
         self.figure.draw_figure("Initial")
@@ -435,6 +431,26 @@ class FaultyMeasurements(PerfectMeasurements, TemplateSimFM):
             self.figure.interact_bodies["error_buttons"].set_active(0)
             self.figure.interact_axes["error_buttons"].active = False
         self.plot_ancilla(f"Layer {self.layer}: ancilla-qubits measured")
+
+    def superoperator_random_errors(self):
+        # Inherited docstring
+        TemplateSimFM.superoperator_random_errors(self)
+    
+    def superoperator_random_errors_layer(self):
+        # Inherited docstring
+        TemplateSimFM.superoperator_random_errors_layer(self)
+        if self.figure.interactive:
+            self.figure.interact_axes["error_buttons"].active = True
+        self.plot_data(f"Layer {self.layer}: errors applied")
+
+    def superoperator_random_measure_layer(self):
+        # Inherited docstring
+        TemplateSimFM.superoperator_random_measure_layer(self)
+        if self.figure.interactive:
+            self.figure.interact_bodies["error_buttons"].set_active(0)
+            self.figure.interact_axes["error_buttons"].active = False
+        self.plot_ancilla(f"Layer {self.layer}: ancilla-qubits measured")
+
 
     def plot_data(self, iter_name: Optional[str] = None, **kwargs):
         """Update plots of all data-qubits in ``self.layer``. A plot iteration is added if a ``iter_name`` is supplied. See `.plot.Template2D.draw_figure`."""

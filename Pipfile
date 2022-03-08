@@ -11,6 +11,7 @@ scipy = ">=1.4.0"
 pptree = ">=3.1"
 
 [dev-packages]
+ipykernel = "*"
 
 [requires]
 python_version = "3.10"

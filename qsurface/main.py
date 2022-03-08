@@ -21,7 +21,6 @@ size_type = Union[Tuple[int, int], int]
 errors_type = List[Union[str, Error]]
 code_type = codes._template.sim.PerfectMeasurements
 decoder_type = decoders._template.Sim
-superoperator_type = codes._template.sim.SuperOperator
 
 
 def initialize(
@@ -106,7 +105,6 @@ def initialize(
         else:
             code.initialize(sup_op_file, **kwargs)
     else:
-        # print("TESTING1")
         code.initialize("NA", *enabled_errors, **kwargs) # Enabled errors passed to the PM/FM classes accordingly
 
     decoder = Decoder_flow_code(code, **kwargs)
@@ -174,10 +172,14 @@ def run(
         seed = timeit.default_timer()
     seed = float(f"{seed}{mp_process}")
     random.seed(seed)
-
     if decode_initial:
         print(f"Running initial iteration", end="\r")
-        code.random_errors() #Applying random errors on the current code
+        if code.superoperator_enabled:
+            code.init_superoperator_errors()
+            print(code.superoperator_errors_list)
+            code.superoperator_random_errors()
+        else:
+            code.random_errors(**error_rates) #Applying random errors on the current code
         decoder.decode(**kwargs)    
         code.logical_state #Get the current logical state
         if hasattr(code, "figure"):
@@ -188,9 +190,20 @@ def run(
 
     output = {"no_error": 0}
 
+    # er_layers = {k:None for k in range(code.layers)}
+
     for iteration in range(iterations):
         print(f"Running iteration {iteration+1}/{iterations}", end="\r")
-        code.random_errors(**error_rates) #Applying random errors on the current code
+        if code.superoperator_enabled:
+            code.init_superoperator_errors()
+            # if code.superoperator_errors_list == er_layers:
+            #     continue
+            print("######################")
+            print(code.superoperator_errors_list)
+            print()
+            code.superoperator_random_errors() #Applying fresh random errors on the current code with the superoperator file
+        else:
+            code.random_errors(**error_rates) #Applying random errors on the current code
         decoder.decode(**kwargs)
         code.logical_state  # Must get logical state property to update code.no_error
         output["no_error"] += code.no_error
