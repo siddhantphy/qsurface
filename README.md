@@ -103,7 +103,17 @@ Plotting will be performed on a 3D axis if faulty measurements are enabled.
 In IPython, inline images are created for each iteration of the plot, which can be tested in the [example notebook](https://mybinder.org/v2/gh/watermarkhu/qsurface/master?filepath=examples.ipynb).
 
 ## Using the superoperator
+For exploring surface codes beyond the phenomenological noise and erasure errors, we can use the idea of superoperator. This is helpful to also explore distributed architectures for quantum computation where complex protocols are involved. Such as superoperator can be modelled as a list of possible data qubit error configurations, measurement errors and the fidelity of the respected stabilizers. One can then sample from this superoperator and use qsurface to simulate error correction.
 ![An example of superoperator CSV file for toric code with bitflip, phaseflip and measurement error rates, all equal to 0.01](https://github.com/siddhantphy/qsurface/blob/master/images/Superoperator_example_toric0.01.png "An example of superoperator CSV file for toric code with bitflip, phaseflip and measurement error rates, all equal to 0.01.")
+The above is an example of superoperator CSV file for toric code with bitflip, phaseflip and measurement error rates, all equal to 0.01. The column header names "error_config", "lie", "p", and "s" are important and a superoperator must be supplied to qsurface as CSV files with the same exact column headers.
+
+ - error_config: Error configuration for a stabilizer (qubits are ordered in increasing order of Cartesian coordinates, x followed by y)
+ - lie: Measurement error. True means measurement error and False otherwise
+ - p: Fidelity of plaquette stabilizer
+ - s: Fidelity of star stabilizer
+
+More information on this can be found in Appendix B and Appendix C of [this thesis](https://spiral.imperial.ac.uk/handle/10044/1/31475).
+
 
 ## Command line interface
 
