@@ -103,7 +103,7 @@ Plotting will be performed on a 3D axis if faulty measurements are enabled.
 In IPython, inline images are created for each iteration of the plot, which can be tested in the [example notebook](https://mybinder.org/v2/gh/watermarkhu/qsurface/master?filepath=examples.ipynb).
 
 ## Using the superoperator
-![An example of superoperator CSV file for toric code with bitflip, phaseflip and measurement error rates, all equal to 0.01](https://github.com/siddhantphy/qsurface/blob/master/images/Superoperator_example_toric0.01.png)
+![An example of superoperator CSV file for toric code with bitflip, phaseflip and measurement error rates, all equal to 0.01](https://github.com/siddhantphy/qsurface/blob/master/images/Superoperator_example_toric0.01.png "An example of superoperator CSV file for toric code with bitflip, phaseflip and measurement error rates, all equal to 0.01.")
 
 ## Command line interface
 
