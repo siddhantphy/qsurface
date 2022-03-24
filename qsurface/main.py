@@ -50,6 +50,10 @@ def initialize(
         List of error modules from `.errors`.
     faulty_measurements
         Enable faulty measurements (decode in a 3D lattice).
+    superoperator_enable
+        Bool to declare whether to use the superoperator approach
+    sup_op_file
+        The CSV file generated from circuit simulator that has the superoperator data in the relevant form
     plotting
         Enable plotting for the surface code and/or decoder.
     kwargs
@@ -173,10 +177,8 @@ def run(
     seed = float(f"{seed}{mp_process}")
     random.seed(seed)
     if decode_initial:
-        print(f"Running initial iteration", end="\r")
         if code.superoperator_enabled:
             code.init_superoperator_errors()
-            print(code.superoperator_errors_list)
             code.superoperator_random_errors()
         else:
             code.random_errors(**error_rates) #Applying random errors on the current code
@@ -190,17 +192,10 @@ def run(
 
     output = {"no_error": 0}
 
-    # er_layers = {k:None for k in range(code.layers)}
-
     for iteration in range(iterations):
         print(f"Running iteration {iteration+1}/{iterations}", end="\r")
         if code.superoperator_enabled:
-            code.init_superoperator_errors()
-            # if code.superoperator_errors_list == er_layers:
-            #     continue
-            print("######################")
-            print(code.superoperator_errors_list)
-            print()
+            code.init_superoperator_errors() # Reinitialize the errors for every iteration
             code.superoperator_random_errors() #Applying fresh random errors on the current code with the superoperator file
         else:
             code.random_errors(**error_rates) #Applying random errors on the current code
@@ -278,9 +273,18 @@ def run_multiprocess(
         return
 
     if decode_initial:
-        code.random_errors()
-        decoder.decode(**kwargs)
-        code.logical_state
+        if code.superoperator_enabled:
+            code.init_superoperator_errors()
+            code.superoperator_random_errors()
+        else:
+            code.random_errors(**error_rates) #Applying random errors on the current code
+        decoder.decode(**kwargs)    
+        code.logical_state #Get the current logical state
+        
+    # if decode_initial:
+    #     code.random_errors()
+    #     decoder.decode(**kwargs)
+    #     code.logical_state
 
     # Initiate processes
     mp_queue = Queue()

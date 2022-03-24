@@ -143,7 +143,7 @@ class AncillaQubit(Qubit):
         p_bitflip_star : float
             Bitflip rate for star (ZZZZ) operators.
         super_error : bool
-            stores boolean if there is a measurement error in the ancilla measurement in the superoperator usage
+            Stores boolean if there is a measurement error in the ancilla measurement in the superoperator usage
         """
         parity = False
         for data_qubit in self.parity_qubits.values():

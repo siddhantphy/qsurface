@@ -1,4 +1,5 @@
 from asynchat import simple_producer
+from traceback import print_tb
 from typing import List, Optional
 from matplotlib.artist import Artist
 from matplotlib.lines import Line2D
@@ -434,18 +435,18 @@ class FaultyMeasurements(PerfectMeasurements, TemplateSimFM):
 
     def superoperator_random_errors(self):
         # Inherited docstring
-        TemplateSimFM.superoperator_random_errors(self)
+        super().superoperator_random_errors()
     
     def superoperator_random_errors_layer(self):
         # Inherited docstring
-        TemplateSimFM.superoperator_random_errors_layer(self)
+        super().superoperator_random_errors_layer()
         if self.figure.interactive:
             self.figure.interact_axes["error_buttons"].active = True
         self.plot_data(f"Layer {self.layer}: errors applied")
 
     def superoperator_random_measure_layer(self):
         # Inherited docstring
-        TemplateSimFM.superoperator_random_measure_layer(self)
+        super().superoperator_random_measure_layer()
         if self.figure.interactive:
             self.figure.interact_bodies["error_buttons"].set_active(0)
             self.figure.interact_axes["error_buttons"].active = False

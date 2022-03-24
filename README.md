@@ -9,11 +9,12 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4247617.svg)](https://doi.org/10.5281/zenodo.4247617)
 [![Unitary Fund](https://img.shields.io/badge/Supported%20By-UNITARY%20FUND-brightgreen.svg?style=flat-the-badge)](http://unitary.fund)
 
-Qsurface is a simulation package for the surface code, and is designed to modularize 3 aspects of a surface code simulation.
+Qsurface is a simulation package for the surface code, and is designed to modularize 4 aspects of a surface code simulation.
 
-1. The surface code
-2. The error model
-3. The used decoder
+1. The surface code and variety of architectures inspired from the surface code
+2. The error models and protocols for exploring the variety of architectures (using the superoperator approach)
+3. The used decoders
+4. Obtaining statistical data and quantities of interest, such as the code threshold for Quantum Error Correction
 
 New types of surface codes, error modules and decoders can be added to Qsurface by using the included templates for each of the three core module categories.
 
@@ -100,6 +101,9 @@ Plotting will be performed on a 3D axis if faulty measurements are enabled.
 ![Interactive plotting on a toric code with faulty measurements.](https://raw.githubusercontent.com/watermarkhu/qsurface/master/images/toric-3d.gif "Iteractive plotting on a 3d axis")
 
 In IPython, inline images are created for each iteration of the plot, which can be tested in the [example notebook](https://mybinder.org/v2/gh/watermarkhu/qsurface/master?filepath=examples.ipynb).
+
+## Using the superoperator
+
 
 ## Command line interface
 
