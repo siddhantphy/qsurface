@@ -2,11 +2,12 @@
 Contains functions and classes to run and benchmark surface code simulations and visualizations. Use `initialize` to prepare a surface code and a decoder instance, which can be passed on to `run` and `run_multiprocess` to simulate errors and to decode them with the decoder. 
 """
 from __future__ import annotations
+from copy import deepcopy
 from types import ModuleType
 from typing import List, Optional, Tuple, Union
 from collections import defaultdict
 from functools import wraps
-from multiprocessing import Process, Queue, cpu_count
+from multiprocessing import Process, Queue, Pool, cpu_count
 import sys
 import timeit
 import random
@@ -221,6 +222,57 @@ def run(
     else:
         mp_queue.put(output)
 
+def run_multiprocess_superoperator(code: code_type,
+    decoder: decoder_type,
+    iterations: int = 1,
+    decode_initial: bool = True,
+    seed: Optional[float] = None,
+    benchmark: Optional[BenchmarkDecoder] = None,
+    **kwargs,):
+
+    if hasattr(code, "figure"):
+        raise TypeError("Cannot use surface code with plotting enabled for superoperator multiprocess.")
+    
+    threads = cpu_count()
+    iterations_per_thread = int(iterations/threads)
+    remaining_iterations = iterations - iterations_per_thread * threads
+
+    if iterations_per_thread == 0:
+        print("Please select more iterations! Aborting.")
+        return
+    
+    if decode_initial:
+        code.init_superoperator_errors()
+        code.superoperator_random_errors()
+        decoder.decode(**kwargs)    
+        code.logical_state #Get the current logical state
+
+    pool = Pool(threads)
+    results = []
+
+    for thread in range(threads):
+        iters = iterations_per_thread
+        if thread < remaining_iterations:
+            iters += 1
+        # code_pool = deepcopy(code)
+        # decoder_pool = deepcopy(decoder)
+        # iters_pool = deepcopy(iters)
+        # decode_initial_pool = deepcopy(decode_initial)
+        # seed_pool = deepcopy(seed)
+        # benchmark_pool = deepcopy(benchmark)
+        results.append(pool.apply_async(run, args=(code, decoder), kwds={"iterations": iters, "decode_initial": decode_initial, "seed": seed, "benchmark": benchmark}))
+    
+    full_result = []
+    for result in results:
+        full_result.append(result.get())
+
+    pool.close()
+
+    output_multi = {"no_error": 0}
+    for i in full_result:
+        output_multi["no_error"] += i["no_error"]
+
+    return output_multi
 
 def run_multiprocess(
     code: code_type,
@@ -234,13 +286,9 @@ def run_multiprocess(
     **kwargs,
 ):
     """Runs surface code simulation using multiple processes.
-
     Using the standard module `.multiprocessing` and its `~multiprocessing.Process` class, several processes are created that each runs its on contained simulation using `run`. The ``code`` and ``decoder`` objects are copied such that each process has its own instance. The total number of ``iterations`` are divided for the number of ``processes`` indicated. If no ``processes`` parameter is supplied, the number of available threads is determined via `~multiprocessing.cpu_count` and all threads are utilized.
-
     If a `.BenchmarkDecoder` object is attached to ``benchmark``, `~multiprocessing.Process` copies the object for each separate thread. Each instance of the the decoder thus have its own benchmark object. The results of the benchmark are appended to a list and addded to the output.
-
     See `run` for examples on running a simulation.
-
     Parameters
     ----------
     code
@@ -273,18 +321,9 @@ def run_multiprocess(
         return
 
     if decode_initial:
-        if code.superoperator_enabled:
-            code.init_superoperator_errors()
-            code.superoperator_random_errors()
-        else:
-            code.random_errors(**error_rates) #Applying random errors on the current code
-        decoder.decode(**kwargs)    
-        code.logical_state #Get the current logical state
-        
-    # if decode_initial:
-    #     code.random_errors()
-    #     decoder.decode(**kwargs)
-    #     code.logical_state
+        code.random_errors()
+        decoder.decode(**kwargs)
+        code.logical_state
 
     # Initiate processes
     mp_queue = Queue()
@@ -350,7 +389,7 @@ def run_multiprocess(
             output["benchmark"] = combined_benchmark
         output["benchmark"]["seed"] = seed
 
-    return output
+    return 
 
 
 class BenchmarkDecoder(object):

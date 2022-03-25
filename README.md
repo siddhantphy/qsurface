@@ -128,6 +128,15 @@ Plotting can also be done with the superoperator usage as follows:
 >>> run(code, decoder, decode_initial=False)
 ```
 
+## Using superoperator in cloud/supercomputer
+Simulations on the supercomputer can be run using the following script:
+```python
+>>> code, decoder = initialize((8,8), "toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="C:/qarch/qsurface/data/phenomenological/phenomenological_0.03_0.03_0.03_0.03_toric.csv", initial_states=(0,0))
+>>> if __name__ == "__main__":
+>>>     print(run_multiprocess_superoperator(code, decoder, iterations=100000, decode_initial=False))
+
+```
+
 ## Command line interface
 
 Simulations can also be initiated from the command line
