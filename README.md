@@ -116,15 +116,24 @@ The above is an example of superoperator CSV file for toric code with bitflip, p
 
 More information on this can be found in Appendix B and Appendix C of [this thesis](https://spiral.imperial.ac.uk/handle/10044/1/31475).
 
+### Creating the superoperator
+It is straightforward to calculate the superoperator for phenomenological noise with Pauli errors without any density matrix calculations. It can be created via the `create_phenomenological_superoperator()` function in `main.py`. A list of error rates must be supplied as the argument `[p_bitflip, p_phaseflip, p_bitflip_plaq, p_bitflip_star]` and the resulting superoperator CSV is saved in the current working directory. An example is:
+```python
+>>> from qsurface.main import create_phenomenological_superoperator
+>>> create_phenomenological_superoperator([0.03, 0.03, 0.05, 0.05])
+```
+
+### Superoperator simulation examples
+
 A simplest example of using the superoperator is:
 ```python
->>> code, decoder = initialize((5,5), "toric", "unionfind", superoperator_enable=True, sup_op_file="C:/qarch/qsurface/data/phenomenological/phenomenological_0.0_0.05_0.0_0.0_toric.csv", initial_states=(0,0))
+>>> code, decoder = initialize((5,5), "toric", "unionfind", superoperator_enable=True, sup_op_file="../phenomenological_0.0_0.05_0.0_0.0_toric.csv", initial_states=(0,0))
 >>> run(code, decoder, iterations=10000, decode_initial=False)
 ```
 Here we specify that `superoperator_enable=True` and supply the CSV file address with `sup_op_file` argument. Note that we no longer need to declare any `enabled_errors` or `error_rates` as these are intrinsically supplied via the superoperator.
 Plotting can also be done with the superoperator usage as follows:
 ```python
->>> code, decoder = initialize((3,3), "toric", "unionfind", plotting=True, superoperator_enable=True, sup_op_file="C:/qarch/qsurface/data/phenomenological/phenomenological_0.0_0.05_0.0_0.0_toric.csv", initial_states=(0,0))
+>>> code, decoder = initialize((3,3), "toric", "unionfind", plotting=True, superoperator_enable=True, sup_op_file="../phenomenological_0.0_0.05_0.0_0.0_toric.csv", initial_states=(0,0))
 >>> run(code, decoder, decode_initial=False)
 ```
 

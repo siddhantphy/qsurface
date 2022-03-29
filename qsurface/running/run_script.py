@@ -1,3 +1,4 @@
+from queue import PriorityQueue
 from qsurface.main import initialize, run, run_multiprocess, run_multiprocess_superoperator, BenchmarkDecoder
 from qsurface.decoders import mwpm
 
@@ -5,10 +6,8 @@ from qsurface.decoders import mwpm
 
 # code, decoder = initialize((2,2), "toric", "mwpm",enabled_errors=["pauli"], faulty_measurements=True, superoperator_enabled=False, sup_file="data/eg_sup.csv")
 
-code, decoder = initialize((3,3), "toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="C:/qarch/qsurface/data/phenomenological/phenomenological_0.03_0.03_0.03_0.03_toric.csv", initial_states=(0,0))
+code, decoder = initialize((4,4), "toric", "unionfind", plotting=True, superoperator_enable=True, sup_op_file="C:/qarch/qsurface/data/phenomenological/phenomenological_0.0_0.0_0.0103148_0.0103148_toric.csv", initial_states=(0,0))
 # code, decoder = initialize((3,3), "toric", "unionfind", enabled_errors=["pauli"], faulty_measurements=True, plotting=False, initial_states=(0,0))
-
-# print(code.stars)
 
 '''####################################################
                 testing ones
@@ -59,7 +58,7 @@ code, decoder = initialize((3,3), "toric", "unionfind", plotting=False, superope
 # print(benchmarker.lists)
 # print(benchmarker.data)
 
-print(run(code, decoder, iterations=10000, decode_initial=False, seed=59))
+print(run(code, decoder, iterations=1, decode_initial=False))
 
 '''####################################################
                 MULTI-PROCESSING
@@ -67,4 +66,5 @@ print(run(code, decoder, iterations=10000, decode_initial=False, seed=59))
 
 # code, decoder = initialize((3,3), "toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="C:/qarch/qsurface/data/phenomenological/phenomenological_0.03_0.03_0.03_0.03_toric.csv", initial_states=(0,0))
 # if __name__ == "__main__":
-#         print(run_multiprocess_superoperator(code, decoder, iterations=10000, decode_initial=False, seed=59))
+        # print(run_multiprocess_superoperator(code, decoder, iterations=10000, decode_initial=False, seed=59))
+        # run_multiprocess(code, decoder, iterations=100, decode_initial=False, seed=59, benchmark=benchmarker)

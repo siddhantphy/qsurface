@@ -80,6 +80,7 @@ class PerfectMeasurements(ABC):
         self.errors = {}
         self.logical_operators = {}
         self.instance = time.time()
+        self.superoperator_enabled = False
 
     @property
     def logical_state(self) -> Tuple[List[bool], bool]:
@@ -541,19 +542,24 @@ class FaultyMeasurements(PerfectMeasurements):
                         _pauli.phaseflip(self.data_qubits[self.layer][location])
                     elif pauli_er == 'Y':
                         _pauli.bitphaseflip(self.data_qubits[self.layer][location])
+                        
+        # Measure without measurement errors to identify measurement errors in the next immediate measurements with measurement errors. Helps in plotting visualization
+        for ancilla in self.ancilla_qubits[self.layer].values(): 
+                ancilla.measure()
 
     def superoperator_random_measure_layer(self):
         """ Measures a layer of ancillas. Use the faulty measurement statistics loaded in `self.stars` and `self.plaquettes`.
 
         If the measured state of the current ancilla is not equal to the measured state of the previous instance, the current ancilla is a syndrome."""
         for location, ancilla in self.ancilla_qubits[self.layer].items():
-            previous_ancilla = self.ancilla_qubits[(ancilla.z - 1) % self.layers][ancilla.loc]
+            previous_ancilla = self.ancilla_qubits[(self.layer - 1) % self.layers][ancilla.loc]
             
-            if self.stars[self.layer] is not None and location in self.stars[self.layer]:
-                current_measured_state = ancilla.measure(0, 0, True)
             if self.plaquettes[self.layer] is not None and location in self.plaquettes[self.layer]:
                 current_measured_state = ancilla.measure(0, 0, True)
-            current_measured_state = ancilla.measure()
+            elif self.stars[self.layer] is not None and location in self.stars[self.layer]:
+                current_measured_state = ancilla.measure(0, 0, True)
+            else:
+                current_measured_state = ancilla.measure()
             
             ancilla.syndrome = current_measured_state != previous_ancilla.measured_state
 

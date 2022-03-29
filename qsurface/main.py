@@ -12,6 +12,8 @@ import sys
 import timeit
 import random
 import numpy
+import pandas as pd
+from itertools import product
 from . import decoders
 from . import codes
 from .errors._template import Sim as Error
@@ -23,6 +25,43 @@ errors_type = List[Union[str, Error]]
 code_type = codes._template.sim.PerfectMeasurements
 decoder_type = decoders._template.Sim
 
+def create_phenomenological_superoperator(rates: list[float]):
+    p_bitflip: float = rates[0]
+    p_phaseflip: float = rates[1]
+    p_bitflip_plaq: float = rates[2]
+    p_bitflip_star: float = rates[3]
+
+    # Rescaling the error rates w.r.t. phenomenological
+    p_bitflip = (1-(1-2*p_bitflip)**(1/4))/2
+    p_phaseflip = (1-(1-2*p_phaseflip)**(1/4))/2
+
+    errors = {'I':(1-p_bitflip)*(1-p_phaseflip),'X':p_bitflip*(1-p_phaseflip), 'Y':p_bitflip*p_phaseflip, 'Z':p_phaseflip*(1-p_bitflip)}
+
+    stabilizers_p = []
+    stabilizers_s = []
+    lie = []
+    error_config = []
+    error_configs = [''.join(comb) for comb in product(list(errors.keys()), repeat=4)]
+
+    for error in error_configs:
+
+        value = 1
+        for pauli in error:
+            value = value * errors[pauli]
+        error_config.append(error)
+        stabilizers_p.append(value * (1 - p_bitflip_plaq))
+        stabilizers_s.append(value * (1 - p_bitflip_star))
+        lie.append(False)
+
+        error_config.append(error)
+        stabilizers_p.append(value * p_bitflip_plaq)
+        stabilizers_s.append(value * p_bitflip_star)
+        lie.append(True)
+
+    data_dict = {'error_config': error_config, 'lie': lie, 'p': stabilizers_p, 's': stabilizers_s}
+    data_frame = pd.DataFrame(data_dict)
+    data_frame.to_csv(f"phenomenological_{p_bitflip}_{p_phaseflip}_{p_bitflip_plaq}_{p_bitflip_star}_toric.csv", sep=';', index=False)
+    
 
 def initialize(
     size: size_type,
@@ -109,8 +148,10 @@ def initialize(
             sys.exit(1)
         else:
             code.initialize(sup_op_file, **kwargs)
-    else:
+    elif superoperator_enable == False and faulty_measurements == True:
         code.initialize("NA", *enabled_errors, **kwargs) # Enabled errors passed to the PM/FM classes accordingly
+    else:
+        code.initialize(*enabled_errors, **kwargs)
 
     decoder = Decoder_flow_code(code, **kwargs)
 
@@ -197,7 +238,13 @@ def run(
         print(f"Running iteration {iteration+1}/{iterations}", end="\r")
         if code.superoperator_enabled:
             code.init_superoperator_errors() # Reinitialize the errors for every iteration
+            # print("#############")
+            # print(code.superoperator_errors_list)
+            # print(code.plaquettes)
+            # print(code.stars)
+            # print("#############")
             code.superoperator_random_errors() #Applying fresh random errors on the current code with the superoperator file
+
         else:
             code.random_errors(**error_rates) #Applying random errors on the current code
         decoder.decode(**kwargs)
