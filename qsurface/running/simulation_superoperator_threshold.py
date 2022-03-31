@@ -6,9 +6,9 @@ from os.path import isfile, join
 import pandas as pd
 
 
-file_location = "C:/qarch/qsurface/data/phenomenological/Z_errors/"
+file_location = "C:/qarch/qsurface/data/phenomenological/faulty_threshold_toric/"
 export_location = 'C:/qarch/qsurface/data/exported_data/threshold_superoperator_data.json'
-iters = 20000
+iters = 10000
 
 
 SIZE = [(6,6), (8,8), (10,10), (12,12)]

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from distutils.command.config import config
 import time
+from traceback import print_tb
 import numpy as np
 import pandas as pd
 import copy
@@ -175,7 +176,6 @@ class PerfectMeasurements(ABC):
         """Initializes the ``error_module.Sim`` class of a error module."""
         error_type = error_module.__name__.split(".")[-1]
         self.errors[error_type] = error_module.Sim(self, **error_rates)
-        # print(self.errors)
 
     
     """
@@ -545,22 +545,25 @@ class FaultyMeasurements(PerfectMeasurements):
                         
         # Measure without measurement errors to identify measurement errors in the next immediate measurements with measurement errors. Helps in plotting visualization
         for ancilla in self.ancilla_qubits[self.layer].values(): 
-                ancilla.measure()
+                ancilla.measure(0, 0, False)
 
     def superoperator_random_measure_layer(self):
         """ Measures a layer of ancillas. Use the faulty measurement statistics loaded in `self.stars` and `self.plaquettes`.
 
         If the measured state of the current ancilla is not equal to the measured state of the previous instance, the current ancilla is a syndrome."""
         for location, ancilla in self.ancilla_qubits[self.layer].items():
-            previous_ancilla = self.ancilla_qubits[(self.layer - 1) % self.layers][ancilla.loc]
+            previous_ancilla = self.ancilla_qubits[(ancilla.z - 1) % self.layers][ancilla.loc]
             
-            if self.plaquettes[self.layer] is not None and location in self.plaquettes[self.layer]:
-                current_measured_state = ancilla.measure(0, 0, True)
-            elif self.stars[self.layer] is not None and location in self.stars[self.layer]:
-                current_measured_state = ancilla.measure(0, 0, True)
-            else:
-                current_measured_state = ancilla.measure()
-            
+            if ancilla.state_type == "z":
+                if self.plaquettes[self.layer] is not None and location in self.plaquettes[self.layer].keys():
+                    current_measured_state = ancilla.measure(0, 0, True)
+                else:
+                    current_measured_state = ancilla.measure(0, 0, False)
+            if ancilla.state_type == "x":
+                if self.stars[self.layer] is not None and location in self.stars[self.layer].keys():
+                    current_measured_state = ancilla.measure(0, 0, True)
+                else:
+                    current_measured_state = ancilla.measure(0, 0, False)
             ancilla.syndrome = current_measured_state != previous_ancilla.measured_state
 
 
@@ -665,5 +668,5 @@ class FaultyMeasurements(PerfectMeasurements):
                 self.plaquettes[current_layer] = None
         
         # Final layer is perfect measurements
-        self.stars[self.layers] = None
-        self.plaquettes[self.layers] = None
+        self.stars[self.layers-1] = None
+        self.plaquettes[self.layers-1] = None

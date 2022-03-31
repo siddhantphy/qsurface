@@ -149,20 +149,16 @@ class AncillaQubit(Qubit):
         for data_qubit in self.parity_qubits.values():
             if data_qubit.state[self.state_type]:
                 parity = not parity
-
         p_measure = p_bitflip_plaq if self.state_type == "x" else p_bitflip_star
 
         if super_error:
             self.measurement_error = True
         else:
             self.measurement_error = p_measure != 0 and random.random() < p_measure
-
         if self.measurement_error:
             parity = not parity
-
         self.measured_state = parity
         self.syndrome = parity
-
         return parity
 
 

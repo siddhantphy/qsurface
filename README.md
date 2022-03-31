@@ -117,7 +117,7 @@ The above is an example of superoperator CSV file for toric code with bitflip, p
 More information on this can be found in Appendix B and Appendix C of [this thesis](https://spiral.imperial.ac.uk/handle/10044/1/31475).
 
 ### Creating the superoperator
-It is straightforward to calculate the superoperator for phenomenological noise with Pauli errors without any density matrix calculations. It can be created via the `create_phenomenological_superoperator()` function in `main.py`. A list of error rates must be supplied as the argument `[p_bitflip, p_phaseflip, p_bitflip_plaq, p_bitflip_star]` and the resulting superoperator CSV is saved in the current working directory. An example is:
+It is straightforward to calculate the superoperator for phenomenological noise with Pauli errors without any density matrix calculations. It can be created (for toric code) via the `create_phenomenological_toric_superoperator()` function in `main.py`. A list of error rates must be supplied as the argument `[p_bitflip, p_phaseflip, p_bitflip_plaq, p_bitflip_star]` and the resulting superoperator CSV is saved in the current working directory. An example is:
 ```python
 >>> from qsurface.main import create_phenomenological_superoperator
 >>> create_phenomenological_superoperator([0.03, 0.03, 0.05, 0.05])

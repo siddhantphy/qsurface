@@ -25,7 +25,7 @@ errors_type = List[Union[str, Error]]
 code_type = codes._template.sim.PerfectMeasurements
 decoder_type = decoders._template.Sim
 
-def create_phenomenological_superoperator(rates: list[float]):
+def create_phenomenological_toric_superoperator(rates: list[float]):
     p_bitflip: float = rates[0]
     p_phaseflip: float = rates[1]
     p_bitflip_plaq: float = rates[2]

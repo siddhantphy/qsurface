@@ -5,19 +5,15 @@ from os import listdir
 from os.path import isfile, join
 import pandas as pd
 
-iters = 30000
+iters = 1000
 
 SIZE = [(6,6), (8,8), (10,10), (12,12)]
-ERRORS = [{"p_bitflip": 0.0, "p_phaseflip": 0.03, "p_bitflip_plaq": 0.0, "p_bitflip_star": 0.0},
-{"p_bitflip": 0.0, "p_phaseflip": 0.04, "p_bitflip_plaq": 0.0, "p_bitflip_star": 0.0},
-{"p_bitflip": 0.0, "p_phaseflip": 0.06, "p_bitflip_plaq": 0.0, "p_bitflip_star": 0.0},
-{"p_bitflip": 0.0, "p_phaseflip": 0.08, "p_bitflip_plaq": 0.0, "p_bitflip_star": 0.0},
-{"p_bitflip": 0.0, "p_phaseflip": 0.09, "p_bitflip_plaq": 0.0, "p_bitflip_star": 0.0},
-{"p_bitflip": 0.0, "p_phaseflip": 0.10, "p_bitflip_plaq": 0.0, "p_bitflip_star": 0.0},
-{"p_bitflip": 0.0, "p_phaseflip": 0.105, "p_bitflip_plaq": 0.0, "p_bitflip_star": 0.0},
-{"p_bitflip": 0.0, "p_phaseflip": 0.11, "p_bitflip_plaq": 0.0, "p_bitflip_star": 0.0},
-{"p_bitflip": 0.0, "p_phaseflip": 0.12, "p_bitflip_plaq": 0.0, "p_bitflip_star": 0.0},
-{"p_bitflip": 0.0, "p_phaseflip": 0.13, "p_bitflip_plaq": 0.0, "p_bitflip_star": 0.0}]
+ERRORS = [{"p_bitflip": 0.024, "p_phaseflip": 0.024, "p_bitflip_plaq": 0.024, "p_bitflip_star": 0.024},
+{"p_bitflip": 0.025, "p_phaseflip": 0.025, "p_bitflip_plaq": 0.025, "p_bitflip_star": 0.025},
+{"p_bitflip": 0.026, "p_phaseflip": 0.026, "p_bitflip_plaq": 0.026, "p_bitflip_star": 0.026},
+{"p_bitflip": 0.028, "p_phaseflip": 0.028, "p_bitflip_plaq": 0.028, "p_bitflip_star": 0.028},
+{"p_bitflip": 0.030, "p_phaseflip": 0.030, "p_bitflip_plaq": 0.030, "p_bitflip_star": 0.030},
+{"p_bitflip": 0.032, "p_phaseflip": 0.032, "p_bitflip_plaq": 0.032, "p_bitflip_star": 0.032}]
 
 
 plot_points = {}
@@ -26,7 +22,7 @@ for size in SIZE:
 
 for size in SIZE:
     for error in ERRORS:
-        code, decoder = initialize(size, "toric", "unionfind", enabled_errors=["pauli"],faulty_measurements=False, initial_states=(0,0))
+        code, decoder = initialize(size, "toric", "unionfind", enabled_errors=["pauli"],faulty_measurements=True, initial_states=(0,0))
         benchmarker = BenchmarkDecoder({
             "decode": ["duration", "value_to_list"],
             "correct_edge": "count_calls",})
