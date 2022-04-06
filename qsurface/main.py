@@ -158,7 +158,7 @@ def initialize(
     return code, decoder 
 
 
-def run____(
+def run(
     code: code_type,
     decoder: decoder_type,
     error_rates: dict = {},
@@ -238,11 +238,6 @@ def run____(
         print(f"Running iteration {iteration+1}/{iterations}", end="\r")
         if code.superoperator_enabled:
             code.init_superoperator_errors() # Reinitialize the errors for every iteration
-            # print("#############")
-            # print(code.superoperator_errors_list)
-            # print(code.plaquettes)
-            # print(code.stars)
-            # print("#############")
             code.superoperator_random_errors() #Applying fresh random errors on the current code with the superoperator file
 
         else:
@@ -267,14 +262,6 @@ def run____(
         return output
     else:
         mp_queue.put(output)
-
-def run(*args, **kwargs):
-    print("hello", args, kwargs)
-    return 10
-
-def stupid(i):
-    print(i)
-    return 10*i
 
 def run_multiprocess_superoperator(code: code_type,
     decoder: decoder_type,
