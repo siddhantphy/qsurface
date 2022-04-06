@@ -158,7 +158,7 @@ def initialize(
     return code, decoder 
 
 
-def run(
+def run____(
     code: code_type,
     decoder: decoder_type,
     error_rates: dict = {},
@@ -263,11 +263,18 @@ def run(
             **benchmark.data,
             **benchmark.lists_mean_var(),
         }
-
     if mp_queue is None:
         return output
     else:
         mp_queue.put(output)
+
+def run(*args, **kwargs):
+    print("hello", args, kwargs)
+    return 10
+
+def stupid(i):
+    print(i)
+    return 10*i
 
 def run_multiprocess_superoperator(code: code_type,
     decoder: decoder_type,
@@ -301,18 +308,14 @@ def run_multiprocess_superoperator(code: code_type,
         iters = iterations_per_thread
         if thread < remaining_iterations:
             iters += 1
-        # code_pool = deepcopy(code)
-        # decoder_pool = deepcopy(decoder)
-        # iters_pool = deepcopy(iters)
-        # decode_initial_pool = deepcopy(decode_initial)
-        # seed_pool = deepcopy(seed)
-        # benchmark_pool = deepcopy(benchmark)
-        results.append(pool.apply_async(run, args=(code, decoder), kwds={"iterations": iters, "decode_initial": decode_initial, "seed": seed, "benchmark": benchmark}))
-    
+        results.append(pool.apply_async(run, args=(decoder,)))
+        # results.append(pool.apply_async(run, args=(code, decoder), kwds={"iterations": iters, "decode_initial": decode_initial, "seed": seed, "benchmark": benchmark}))
+
     full_result = []
     for result in results:
         full_result.append(result.get())
 
+    print(full_result)
     pool.close()
 
     output_multi = {"no_error": 0}
