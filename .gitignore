@@ -4,6 +4,7 @@
 *.csv
 *.txt
 *.ini
+*.json
 !requirements.txt
 !pytest.ini
 test.py

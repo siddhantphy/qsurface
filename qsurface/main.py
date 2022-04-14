@@ -239,7 +239,6 @@ def run(
         if code.superoperator_enabled:
             code.init_superoperator_errors() # Reinitialize the errors for every iteration
             code.superoperator_random_errors() #Applying fresh random errors on the current code with the superoperator file
-
         else:
             code.random_errors(**error_rates) #Applying random errors on the current code
         decoder.decode(**kwargs)
@@ -295,14 +294,12 @@ def run_multiprocess_superoperator(code: code_type,
         iters = iterations_per_thread
         if thread < remaining_iterations:
             iters += 1
-        results.append(pool.apply_async(run, args=(decoder,)))
-        # results.append(pool.apply_async(run, args=(code, decoder), kwds={"iterations": iters, "decode_initial": decode_initial, "seed": seed, "benchmark": benchmark}))
+        results.append(pool.apply_async(run, args=(code, decoder), kwds={"iterations": iters, "decode_initial": decode_initial, "seed": seed, "benchmark": benchmark}))
 
     full_result = []
     for result in results:
         full_result.append(result.get())
 
-    print(full_result)
     pool.close()
 
     output_multi = {"no_error": 0}
@@ -358,9 +355,13 @@ def run_multiprocess(
         return
 
     if decode_initial:
-        code.random_errors()
-        decoder.decode(**kwargs)
-        code.logical_state
+        if code.superoperator_enabled:
+            code.init_superoperator_errors()
+            code.superoperator_random_errors()
+        else:
+            code.random_errors(**error_rates) #Applying random errors on the current code
+        decoder.decode(**kwargs)    
+        code.logical_state #Get the current logical state
 
     # Initiate processes
     mp_queue = Queue()
@@ -426,7 +427,7 @@ def run_multiprocess(
             output["benchmark"] = combined_benchmark
         output["benchmark"]["seed"] = seed
 
-    return 
+    return output
 
 
 class BenchmarkDecoder(object):
