@@ -5,15 +5,15 @@ from os import listdir
 from os.path import isfile, join
 import pandas as pd
 
-iters = 1000
+iters = 100000
 
-SIZE = [(6,6), (8,8), (10,10), (12,12)]
-ERRORS = [{"p_bitflip": 0.024, "p_phaseflip": 0.024, "p_bitflip_plaq": 0.024, "p_bitflip_star": 0.024},
-{"p_bitflip": 0.025, "p_phaseflip": 0.025, "p_bitflip_plaq": 0.025, "p_bitflip_star": 0.025},
-{"p_bitflip": 0.026, "p_phaseflip": 0.026, "p_bitflip_plaq": 0.026, "p_bitflip_star": 0.026},
-{"p_bitflip": 0.028, "p_phaseflip": 0.028, "p_bitflip_plaq": 0.028, "p_bitflip_star": 0.028},
-{"p_bitflip": 0.030, "p_phaseflip": 0.030, "p_bitflip_plaq": 0.030, "p_bitflip_star": 0.030},
-{"p_bitflip": 0.032, "p_phaseflip": 0.032, "p_bitflip_plaq": 0.032, "p_bitflip_star": 0.032}]
+SIZE = [(4,4), (5,5), (6,6), (7,7), (8,8)]
+ERRORS = [{"p_bitflip": 0.024, "p_phaseflip": 0.024, "p_bitflip_plaq": 0.024, "p_bitflip_star": 0.024}]
+# ERRORS = [{"p_bitflip": 0.024, "p_phaseflip": 0.024, "p_bitflip_plaq": 0.024, "p_bitflip_star": 0.024},
+# {"p_bitflip": 0.026, "p_phaseflip": 0.026, "p_bitflip_plaq": 0.026, "p_bitflip_star": 0.026},
+# {"p_bitflip": 0.028, "p_phaseflip": 0.028, "p_bitflip_plaq": 0.028, "p_bitflip_star": 0.028},
+# {"p_bitflip": 0.030, "p_phaseflip": 0.030, "p_bitflip_plaq": 0.030, "p_bitflip_star": 0.030},
+# {"p_bitflip": 0.032, "p_phaseflip": 0.032, "p_bitflip_plaq": 0.032, "p_bitflip_star": 0.032}]
 
 
 plot_points = {}
@@ -22,7 +22,7 @@ for size in SIZE:
 
 for size in SIZE:
     for error in ERRORS:
-        code, decoder = initialize(size, "toric", "unionfind", enabled_errors=["pauli"],faulty_measurements=True, initial_states=(0,0))
+        code, decoder = initialize(size, "toric", "mwpm", enabled_errors=["pauli"],faulty_measurements=True, initial_states=(0,0))
         benchmarker = BenchmarkDecoder({
             "decode": ["duration", "value_to_list"],
             "correct_edge": "count_calls",})

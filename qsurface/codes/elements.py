@@ -107,6 +107,9 @@ class AncillaQubit(Qubit):
         Whether the current ancilla is a syndrome.
     measurement_error : bool
         Whether an error occurred during the last measurement.
+    ghz_success : bool
+        Boolean that tells whether the ghz state creation was successfull for the corresponding stabilizer when sampled from the superoperator
+    
 
     Examples
     --------
@@ -126,6 +129,10 @@ class AncillaQubit(Qubit):
         self.parity_qubits = {}
         self.z_neighbors = {}
         self.measurement_error = False
+
+        # Distributed quantum computation (DQC) features
+        self.ghz_success: bool = False
+        self.super_error: bool = False
 
     @property
     def state(self):
@@ -151,7 +158,7 @@ class AncillaQubit(Qubit):
                 parity = not parity
         p_measure = p_bitflip_plaq if self.state_type == "x" else p_bitflip_star
 
-        if super_error:
+        if super_error or self.super_error:
             self.measurement_error = True
         else:
             self.measurement_error = p_measure != 0 and random.random() < p_measure
@@ -239,3 +246,27 @@ class PseudoEdge(Edge):
     """Vertical edge connecting time instances of ancilla-qubits, imitates `.codes.elements.Edge`."""
 
     edge_type, rep = "pseudo", "|"
+
+class Cell(object):
+    """Node (cell) that has multiple data qubits for distributed quantum computation. Building block of distributed
+    quantum computer. A list of  `.codes.elements.DataQubit` objects."""
+
+    cell_type, rep = "DQC cell", "<[ ]>"
+
+    def __init__(self, qubits: list[DataQubit], **kwargs):
+        self.cell_qubits = qubits
+
+    def __repr__(self):
+        return "<{}>".format([qubit for qubit in self.cell_qubits])
+
+
+class Round(object):
+    """A round within a stabilizer cycle that includes a subset of stabilizer measuerments via a`.codes.elements.AncillaQubit` objects"""
+    
+    round_type, rep = "DQC Weight-3 round", "<[ ]>"
+
+    def __init__(self, ancilla_qubits: list[AncillaQubit], **kwargs):
+        self.round_ancillas = ancilla_qubits
+
+    def __repr__(self):
+        return "<R{}R>".format([ancilla for ancilla in self.round_ancillas])

@@ -5,7 +5,7 @@ from traceback import print_tb
 import numpy as np
 import pandas as pd
 import copy
-from ..elements import DataQubit, AncillaQubit, PseudoQubit, Edge, PseudoEdge
+from ..elements import DataQubit, AncillaQubit, PseudoQubit, Edge, PseudoEdge, Cell, Round
 from ...errors._template import Sim as Error
 from ...errors.pauli import Sim as Pauli
 from typing import Any, List, Optional, Union, Tuple
@@ -34,8 +34,17 @@ class PerfectMeasurements(ABC):
     data_qubits : dict of dict
         Nested dictionary of `~.codes.elements.DataQubit` objects.
 
+    cells : dict of dict
+        Nested dictionary of `~.codes.elements.Cell` objects
+
     pseudo_qubits : dict of dict
         Nested dictionary of `~.codes.elements.PseudoQubit` objects.
+
+    rounds_plaq: dict of dict
+        Nested dictionary of `~.codes.elements.Round` objects.
+
+    rounds_star: dict of dict
+        Nested dictionary of `~.codes.elements.Round` objects.
 
     errors : dict
         Dictionary of error modules with the module name as key. All error modules from :doc:`../errors/index` loaded in ``self.errors`` will be applied during a simulation by :meth:`random_errors`.
@@ -60,6 +69,8 @@ class PerfectMeasurements(ABC):
     _AncillaQubit = AncillaQubit
     _PseudoQubit = PseudoQubit
     _Edge = Edge
+    _Cell = Cell
+    _Round = Round
     name = "template"
     x_names = ["x", "X", 0, "bitflip"]
     z_names = ["z", "Z", 1, "phaseflip"]
@@ -77,7 +88,10 @@ class PerfectMeasurements(ABC):
         self.no_error = True
         self.ancilla_qubits = {}
         self.data_qubits = {}
+        self.cells = {}
         self.pseudo_qubits = defaultdict(dict)
+        self.rounds_plaq = {}
+        self.rounds_star = {}
         self.errors = {}
         self.logical_operators = {}
         self.instance = time.time()
@@ -253,6 +267,30 @@ class PerfectMeasurements(ABC):
         if edge is None:
             edge = data_qubit.edges[ancilla_qubit.state_type]
         edge.add_node(ancilla_qubit)
+
+
+    """
+    ----------------------------------------------------------------------------------------
+                            Distributed Quantum Computation Functions
+    ----------------------------------------------------------------------------------------
+    """
+
+    def add_cell(self, qubits: list[DataQubit], z: float = 0, index: float = 0, **kwargs) -> Cell:
+        cell = self._Cell(qubits, **kwargs)
+        self.cells[z][index] = cell
+        return
+
+    def add_round_plaq(self, ancillas: list[AncillaQubit],  z: float = 0, serial: float = 0, **kwargs) -> Round:
+        round = self._Round(ancillas, **kwargs)
+        self.rounds_plaq[z][serial] = round
+        return
+    
+    def add_round_star(self, ancillas: list[AncillaQubit],  z: float = 0, serial: float = 0, **kwargs) -> Round:
+        round = self._Round(ancillas, **kwargs)
+        self.rounds_star[z][serial] = round
+        return
+
+
 
     """
     ----------------------------------------------------------------------------------------

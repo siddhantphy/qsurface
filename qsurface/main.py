@@ -25,11 +25,11 @@ errors_type = List[Union[str, Error]]
 code_type = codes._template.sim.PerfectMeasurements
 decoder_type = decoders._template.Sim
 
-def create_phenomenological_toric_superoperator(rates: list[float]):
-    p_bitflip: float = rates[0]
-    p_phaseflip: float = rates[1]
-    p_bitflip_plaq: float = rates[2]
-    p_bitflip_star: float = rates[3]
+def create_phenomenological_toric_superoperator(error_rates: list[float]):
+    p_bitflip = error_rates[0]
+    p_phaseflip = error_rates[1]
+    p_bitflip_plaq = error_rates[2]
+    p_bitflip_star = error_rates[3]
 
     # Rescaling the error rates w.r.t. phenomenological
     p_bitflip = (1-(1-2*p_bitflip)**(1/4))/2
@@ -62,6 +62,71 @@ def create_phenomenological_toric_superoperator(rates: list[float]):
     data_frame = pd.DataFrame(data_dict)
     data_frame.to_csv(f"phenomenological_{p_bitflip}_{p_phaseflip}_{p_bitflip_plaq}_{p_bitflip_star}_toric.csv", sep=';', index=False)
     
+def create_phenomenological_weight_3_toric_superoperator(p_ghz: float = 0.05, cut_off: float = 0.9, error_rates: list[float] = [0.1,0.1,0.1,0.1]):
+    p_bitflip = error_rates[0]
+    p_phaseflip = error_rates[1]
+    p_bitflip_plaq = error_rates[2]
+    p_bitflip_star = error_rates[3]
+
+    # Rescaling the error rates w.r.t. phenomenological
+    p_bitflip = (1-(1-2*p_bitflip)**(1/4))/2
+    p_phaseflip = (1-(1-2*p_phaseflip)**(1/4))/2
+
+    errors = {'I':(1-p_bitflip)*(1-p_phaseflip),'X':p_bitflip*(1-p_phaseflip), 'Y':p_bitflip*p_phaseflip, 'Z':p_phaseflip*(1-p_bitflip)}
+
+    stabilizers_p = []
+    stabilizers_s = []
+    lie = []
+    ghz_success = []
+    idle_noise = []
+    error_config = []
+    error_configs = [''.join(comb) for comb in product(list(errors.keys()), repeat=4)]
+
+    for error in error_configs:
+        value = 1
+        for pauli in error:
+            value = value * errors[pauli]
+
+        new_value = value * p_ghz
+        error_config.append(error)
+        idle_noise.append(value)
+        stabilizers_p.append(new_value * (1 - p_bitflip_plaq))
+        stabilizers_s.append(new_value * (1 - p_bitflip_star))
+        lie.append(False)
+        ghz_success.append(True)
+        new_value = 1
+
+        new_value = value * p_ghz
+        error_config.append(error)
+        idle_noise.append(value)
+        stabilizers_p.append(new_value * p_bitflip_plaq)
+        stabilizers_s.append(new_value * p_bitflip_star)
+        lie.append(True)
+        ghz_success.append(True)
+        new_value = 1
+
+        new_value = value * (1 - p_ghz)
+        error_config.append(error)
+        idle_noise.append(value)
+        stabilizers_p.append(new_value * (1 - p_bitflip_plaq))
+        stabilizers_s.append(new_value * (1 - p_bitflip_star))
+        lie.append(False)
+        ghz_success.append(False)
+        new_value = 1
+
+        new_value = value * (1 - p_ghz)
+        error_config.append(error)
+        idle_noise.append(value)
+        stabilizers_p.append(new_value * p_bitflip_plaq)
+        stabilizers_s.append(new_value * p_bitflip_star)
+        lie.append(True)
+        ghz_success.append(False)    
+
+    data_dict = {'error_config': error_config, 'ghz_success': ghz_success, 'lie': lie, 'p': stabilizers_p, 's': stabilizers_s, 'idle': idle_noise, 'cut_off': cut_off}
+    data_frame = pd.DataFrame(data_dict)
+    data_frame.to_csv(f"phenomenological_wt_3_toric_px_{p_bitflip}_pz_{p_phaseflip}_pmx_{p_bitflip_plaq}_pmz_{p_bitflip_star}_ghz_{p_ghz}.csv", sep=';', index=False)
+    
+
 
 def initialize(
     size: size_type,

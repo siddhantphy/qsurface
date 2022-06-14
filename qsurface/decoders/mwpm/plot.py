@@ -24,3 +24,6 @@ class Planar(Toric, SimPlanar):
     """
 
     pass
+
+class Weight_3_toric(Toric):
+    pass

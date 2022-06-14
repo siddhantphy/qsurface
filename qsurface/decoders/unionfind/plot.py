@@ -362,3 +362,6 @@ class Planar(Toric, SimPlanar):
         def _plot_ancilla(self, ancilla, **kwargs):
             if type(ancilla) == AncillaQubit:
                 super()._plot_ancilla(ancilla, **kwargs)
+
+class Weight_3_toric(Toric):
+    pass
