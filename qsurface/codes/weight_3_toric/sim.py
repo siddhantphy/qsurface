@@ -279,10 +279,15 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
             # Plaquette sequence ends here
 
             # Now measure the layer to get the syndrome after all the rounds of current cycle are finished
-            self.superoperator_random_measure_layer()
+            if self.layer == self.layers - 1:
+                self.superoperator_random_measure_layer(ideal_measure=True) # Last layer perfect measurements
+            else:
+                self.superoperator_random_measure_layer()
+
+        
 
     def superoperator_apply_round(self, round: Round):
-        """ Applies the pauli errors loaded in ``self.superoperator_errors_list`` to each layer. """
+        """ Applies the round noise to all ancillas in a particular round. """
         for round_ancilla in round.round_ancillas:
             self.round_noise(round_ancilla)
                         
@@ -291,14 +296,20 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
                 ancilla.measure(0, 0, False)
 
     def superoperator_apply_idling(self, round: Round):
+        """ Applies the idle noise to all ancillas in a particular round. """
         for idle_ancilla in round.round_ancillas:
             self.qubit_idling(idle_ancilla)
 
-    def superoperator_random_measure_layer(self):
+        for ancilla in self.ancilla_qubits[self.layer].values(): 
+                ancilla.measure(0, 0, False)
+
+    def superoperator_random_measure_layer(self, ideal_measure = False):
         """ Measures a layer of ancillas. Use the faulty measurement statistics loaded in `self.stars` and `self.plaquettes`.
 
         If the measured state of the current ancilla is not equal to the measured state of the previous instance, the current ancilla is a syndrome."""
         for ancilla in self.ancilla_qubits[self.layer].values():
             previous_ancilla = self.ancilla_qubits[(ancilla.z - 1) % self.layers][ancilla.loc]
+            if ideal_measure:
+                ancilla.super_error = False # Last layer is with perfect measurements
             measured_state = ancilla.measure()
             ancilla.syndrome = measured_state != previous_ancilla.measured_state

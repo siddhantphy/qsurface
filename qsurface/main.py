@@ -60,19 +60,32 @@ def create_phenomenological_toric_superoperator(error_rates: list[float]):
 
     data_dict = {'error_config': error_config, 'lie': lie, 'p': stabilizers_p, 's': stabilizers_s}
     data_frame = pd.DataFrame(data_dict)
-    data_frame.to_csv(f"phenomenological_{p_bitflip}_{p_phaseflip}_{p_bitflip_plaq}_{p_bitflip_star}_toric.csv", sep=';', index=False)
+    data_frame.to_csv(f"phenomenological_{error_rates[0]}_{error_rates[1]}_{error_rates[2]}_{error_rates[3]}_toric.csv", sep=';', index=False)
     
-def create_phenomenological_weight_3_toric_superoperator(p_ghz: float = 0.05, cut_off: float = 0.9, error_rates: list[float] = [0.1,0.1,0.1,0.1]):
-    p_bitflip = error_rates[0]
-    p_phaseflip = error_rates[1]
-    p_bitflip_plaq = error_rates[2]
-    p_bitflip_star = error_rates[3]
+def create_phenomenological_weight_3_toric_superoperator(p_ghz: float = 1, cut_off: float = 0.9, error_rates: list[float] = [0.01,0.01,0.01,0.01,0.01,0.01]):
+    px = error_rates[0]
+    pz = error_rates[1]
+    prx = error_rates[2]
+    prz = error_rates[3]
+
+    pm_plaq = error_rates[4]
+    pm_star = error_rates[5]
 
     # Rescaling the error rates w.r.t. phenomenological
-    p_bitflip = (1-(1-2*p_bitflip)**(1/4))/2
-    p_phaseflip = (1-(1-2*p_phaseflip)**(1/4))/2
+    px = (1-(1-2*px)**(1/4))/2
+    px = (1-(1-2*px)**(1/2))/2
 
-    errors = {'I':(1-p_bitflip)*(1-p_phaseflip),'X':p_bitflip*(1-p_phaseflip), 'Y':p_bitflip*p_phaseflip, 'Z':p_phaseflip*(1-p_bitflip)}
+    pz = (1-(1-2*pz)**(1/4))/2
+    pz = (1-(1-2*pz)**(1/2))/2
+
+    prx = (1-(1-2*prx)**(1/4))/2
+    prx = (1-(1-2*prx)**(1/2))/2
+
+    prz = (1-(1-2*prz)**(1/4))/2
+    prz = (1-(1-2*prz)**(1/2))/2
+
+    idle_errors = {'I':(1-px)*(1-pz),'X':px*(1-pz), 'Y':px*pz, 'Z':pz*(1-px)}
+    round_errors = {'I':(1-prx)*(1-prz),'X':prx*(1-prz), 'Y':prx*prz, 'Z':prz*(1-prx)}
 
     stabilizers_p = []
     stabilizers_s = []
@@ -80,52 +93,55 @@ def create_phenomenological_weight_3_toric_superoperator(p_ghz: float = 0.05, cu
     ghz_success = []
     idle_noise = []
     error_config = []
-    error_configs = [''.join(comb) for comb in product(list(errors.keys()), repeat=4)]
+    error_configs = [''.join(comb) for comb in product(list(round_errors.keys()), repeat=4)]
 
     for error in error_configs:
-        value = 1
-        for pauli in error:
-            value = value * errors[pauli]
+        round_val = 1
+        idle_val = 1
 
-        new_value = value * p_ghz
+        for pauli in error:
+            round_val = round_val * round_errors[pauli]
+            idle_val = idle_val * idle_errors[pauli]
+
+        new_value = round_val * p_ghz
         error_config.append(error)
-        idle_noise.append(value)
-        stabilizers_p.append(new_value * (1 - p_bitflip_plaq))
-        stabilizers_s.append(new_value * (1 - p_bitflip_star))
+        idle_noise.append(idle_val)
+        stabilizers_p.append(new_value * (1 - pm_plaq))
+        stabilizers_s.append(new_value * (1 - pm_star))
         lie.append(False)
         ghz_success.append(True)
         new_value = 1
 
-        new_value = value * p_ghz
+        new_value = round_val * p_ghz
         error_config.append(error)
-        idle_noise.append(value)
-        stabilizers_p.append(new_value * p_bitflip_plaq)
-        stabilizers_s.append(new_value * p_bitflip_star)
+        idle_noise.append(idle_val)
+        stabilizers_p.append(new_value * pm_plaq)
+        stabilizers_s.append(new_value * pm_star)
         lie.append(True)
         ghz_success.append(True)
         new_value = 1
 
-        new_value = value * (1 - p_ghz)
+        new_value = round_val * (1 - p_ghz)
         error_config.append(error)
-        idle_noise.append(value)
-        stabilizers_p.append(new_value * (1 - p_bitflip_plaq))
-        stabilizers_s.append(new_value * (1 - p_bitflip_star))
+        idle_noise.append(idle_val)
+        stabilizers_p.append(new_value * (1 - pm_plaq))
+        stabilizers_s.append(new_value * (1 - pm_star))
         lie.append(False)
         ghz_success.append(False)
         new_value = 1
 
-        new_value = value * (1 - p_ghz)
+        new_value = round_val * (1 - p_ghz)
         error_config.append(error)
-        idle_noise.append(value)
-        stabilizers_p.append(new_value * p_bitflip_plaq)
-        stabilizers_s.append(new_value * p_bitflip_star)
+        idle_noise.append(idle_val)
+        stabilizers_p.append(new_value * pm_plaq)
+        stabilizers_s.append(new_value * pm_star)
         lie.append(True)
-        ghz_success.append(False)    
+        ghz_success.append(False)
+        new_value = 1
 
     data_dict = {'error_config': error_config, 'ghz_success': ghz_success, 'lie': lie, 'p': stabilizers_p, 's': stabilizers_s, 'idle': idle_noise, 'cut_off': cut_off}
     data_frame = pd.DataFrame(data_dict)
-    data_frame.to_csv(f"phenomenological_wt_3_toric_px_{p_bitflip}_pz_{p_phaseflip}_pmx_{p_bitflip_plaq}_pmz_{p_bitflip_star}_ghz_{p_ghz}.csv", sep=';', index=False)
-    
+    data_frame.to_csv(f"phenomenological_wt_3_toric_px_{error_rates[0]}_pz_{error_rates[1]}_prx_{error_rates[2]}_prz_{error_rates[3]}_pmx_{error_rates[4]}_pmz_{error_rates[5]}_ghz_{p_ghz}.csv", sep=';', index=False)
 
 
 def initialize(

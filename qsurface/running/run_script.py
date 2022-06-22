@@ -40,8 +40,8 @@ from qsurface.main import initialize, run, run_multiprocess, run_multiprocess_su
                 WEIGHT-3 ARCHITECTURE
    ####################################################'''
 
-code, decoder = initialize((4,4), "weight_3_toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="./qsurface/running/phenomenological_wt_3_toric_px_0.007674911394090711_pz_0.012998126787351627_pmx_0.06_pmz_0.06_ghz_0.01.csv", initial_states=(0,0))
+code, decoder = initialize((4,4), "weight_3_toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="./qsurface/running/phenomenological_wt_3_toric_px_0.03_pz_0.03_prx_0.03_prz_0.03_pmx_0.03_pmz_0.03_ghz_1.csv", initial_states=(0,0))
 benchmarker = BenchmarkDecoder({
         "decode": ["duration", "value_to_list"],
         "correct_edge": "count_calls",})
-print(run(code, decoder, iterations=100, decode_initial=False, benchmark=benchmarker))
+print(run(code, decoder, iterations=1000, decode_initial=False, benchmark=benchmarker))
