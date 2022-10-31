@@ -45,7 +45,6 @@ class PerfectMeasurements(TemplatePM):
             for x in range(self.size[0]):
                 self.add_cell([self.data_qubits[z][(x + 0.5, y)], self.data_qubits[z][(x, y + 0.5)]], z=z, index=index, **kwargs)
                 index += 1
-        
         del index
         # The size is even X even for weight-3 architecture
 
