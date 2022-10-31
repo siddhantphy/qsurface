@@ -203,7 +203,6 @@ def initialize(
         >>> initialize((6,6), "toric", "unionfind", enabled_errors=enabled_errors, **code_kwargs, **decoder_kwargs)
         ✅ This decoder is compatible with the code.
     """
-
     if isinstance(Code, str):
         Code = getattr(codes, Code)
     Code_flow = getattr(Code, "plot") if plotting else getattr(Code, "sim")

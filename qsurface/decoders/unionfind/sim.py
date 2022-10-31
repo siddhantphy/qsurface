@@ -664,3 +664,6 @@ class Planar(Toric):
 
 class Weight_3_toric(Toric):
     pass
+
+class Weight_4_toric(Toric):
+    pass
