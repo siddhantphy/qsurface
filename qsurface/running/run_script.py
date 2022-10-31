@@ -1,3 +1,6 @@
+import sys 
+sys.path.append("c:\\qarch\\qsurface\\")
+
 from qsurface.main import initialize, run, run_multiprocess, run_multiprocess_superoperator, BenchmarkDecoder
 
 ''' SUPEROPERATOR USAGE '''
@@ -40,8 +43,8 @@ from qsurface.main import initialize, run, run_multiprocess, run_multiprocess_su
                 WEIGHT-3 ARCHITECTURE
    ####################################################'''
 
-code, decoder = initialize((4,4), "weight_3_toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="./qsurface/running/phenomenological_wt_3_toric_px_0.03_pz_0.03_prx_0.03_prz_0.03_pmx_0.03_pmz_0.03_ghz_1.csv", initial_states=(0,0))
+code, decoder = initialize((6,4), "weight_3_toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="./qsurface/running/20221031_162325_hc_weight_3_node-s3c_p_g-0.00475_p_m-0.00475merged.csv", initial_states=(0,0))
 benchmarker = BenchmarkDecoder({
         "decode": ["duration", "value_to_list"],
         "correct_edge": "count_calls",})
-print(run(code, decoder, iterations=1000, decode_initial=False, benchmark=benchmarker))
+print(run(code, decoder, iterations=50, decode_initial=False, benchmark=benchmarker))

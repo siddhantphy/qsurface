@@ -155,7 +155,7 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
             Relatve/Complete filepath for the superoperator CSV file generated from the circuit simulator
         """
         sup_op_data = pd.read_csv(filepath, sep = ';')
-        self.superoperator_data = (sup_op_data.loc[:, ['error_config', 'ghz_success', 'lie', 'p', 's', 'idle', 'cut_off']]).to_dict()
+        self.superoperator_data = (sup_op_data.loc[:, ['error_config', 'ghz_success', 'lie', 'p', 's', 'idle']]).to_dict()
         self.superoperator_size = list(self.superoperator_data['error_config'].keys())
 
 
@@ -168,7 +168,7 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
     def init_superoperator_errors(self, *args, **kwargs):
         """Initializes required parameters from the `self.superoperator_data`."""
         
-        self.cut_off = float(self.superoperator_data['cut_off'][1])
+        # self.cut_off = float(self.superoperator_data['cut_off'][1])
 
     """
     ---------------------------------------------------------------------------------------------------------------------
@@ -252,37 +252,43 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
 
             # Star sequence starts here
             self.superoperator_apply_round(self.rounds_star[self.layer][1])
+            self.superoperator_measure_round(self.rounds_star[self.layer][1])
             self.superoperator_apply_idling(self.rounds_star[self.layer][3])
 
             self.superoperator_apply_round(self.rounds_star[self.layer][2])
+            self.superoperator_measure_round(self.rounds_star[self.layer][2])
             self.superoperator_apply_idling(self.rounds_star[self.layer][4])
 
             self.superoperator_apply_round(self.rounds_star[self.layer][3])
+            self.superoperator_measure_round(self.rounds_star[self.layer][3])
             self.superoperator_apply_idling(self.rounds_star[self.layer][1])
 
             self.superoperator_apply_round(self.rounds_star[self.layer][4])
+            self.superoperator_measure_round(self.rounds_star[self.layer][4])
             self.superoperator_apply_idling(self.rounds_star[self.layer][2])
             # Star sequence ends here
 
             # Plaquette sequence starts here
             self.superoperator_apply_round(self.rounds_plaq[self.layer][1])
+            self.superoperator_measure_round(self.rounds_plaq[self.layer][1])
             self.superoperator_apply_idling(self.rounds_plaq[self.layer][3])
 
             self.superoperator_apply_round(self.rounds_plaq[self.layer][2])
+            self.superoperator_measure_round(self.rounds_plaq[self.layer][2])
             self.superoperator_apply_idling(self.rounds_plaq[self.layer][4])
 
             self.superoperator_apply_round(self.rounds_plaq[self.layer][3])
+            self.superoperator_measure_round(self.rounds_plaq[self.layer][3])
             self.superoperator_apply_idling(self.rounds_plaq[self.layer][1])
 
             self.superoperator_apply_round(self.rounds_plaq[self.layer][4])
+            self.superoperator_measure_round(self.rounds_plaq[self.layer][4])
             self.superoperator_apply_idling(self.rounds_plaq[self.layer][2])
             # Plaquette sequence ends here
 
-            # Now measure the layer to get the syndrome after all the rounds of current cycle are finished
-            if self.layer == self.layers - 1:
-                self.superoperator_random_measure_layer(ideal_measure=True) # Last layer perfect measurements
-            else:
-                self.superoperator_random_measure_layer()
+        # Now measure the layer to get the syndrome after all the rounds of current cycle are finished
+        self.layer = self.layers - 1
+        self.superoperator_random_measure_layer(ideal_measure=True) # Last layer perfect measurements with no round and idling noise.
 
         
 
@@ -303,13 +309,29 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
         for ancilla in self.ancilla_qubits[self.layer].values(): 
                 ancilla.measure(0, 0, False)
 
+    def superoperator_measure_round(self, round: Round, ideal_measure = False):
+        """ Applies the round noise to all ancillas in a particular round. """
+        for round_ancilla in round.round_ancillas:
+            previous_ancilla = self.ancilla_qubits[(round_ancilla.z - 1) % self.layers][round_ancilla.loc]
+            if round_ancilla.ghz_success == False:
+                round_ancilla.syndrome = previous_ancilla.syndrome
+            else:
+                if ideal_measure:
+                    round_ancilla.super_error = False # Last layer is with perfect measurements
+                measured_state = round_ancilla.measure()
+                round_ancilla.syndrome = measured_state != previous_ancilla.measured_state
+                    
+
     def superoperator_random_measure_layer(self, ideal_measure = False):
         """ Measures a layer of ancillas. Use the faulty measurement statistics loaded in `self.stars` and `self.plaquettes`.
 
         If the measured state of the current ancilla is not equal to the measured state of the previous instance, the current ancilla is a syndrome."""
         for ancilla in self.ancilla_qubits[self.layer].values():
             previous_ancilla = self.ancilla_qubits[(ancilla.z - 1) % self.layers][ancilla.loc]
-            if ideal_measure:
-                ancilla.super_error = False # Last layer is with perfect measurements
-            measured_state = ancilla.measure()
-            ancilla.syndrome = measured_state != previous_ancilla.measured_state
+            if ancilla.ghz_success == False:
+                ancilla.syndrome = previous_ancilla.syndrome
+            else:
+                if ideal_measure:
+                    ancilla.super_error = False # Last layer is with perfect measurements
+                measured_state = ancilla.measure()
+                ancilla.syndrome = measured_state != previous_ancilla.measured_state
