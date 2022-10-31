@@ -142,7 +142,7 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
         self.init_surface(**kwargs)
         self.init_logical_operator(**kwargs)
         self.csv_to_sup(filepath=sup_file)
-        self.init_superoperator_errors() # loads fresh errors and measurements from the superoperator_data dictionary
+        self.init_superoperator_errors() # Does necessary superoperator initializations on the code, if required!
 
 
     def csv_to_sup(self, filepath="NA"):
@@ -166,8 +166,7 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
 
     def init_superoperator_errors(self, *args, **kwargs):
         """Initializes required parameters from the `self.superoperator_data`."""
-        
-        # self.cut_off = float(self.superoperator_data['cut_off'][1])
+        pass
 
     """
     ---------------------------------------------------------------------------------------------------------------------

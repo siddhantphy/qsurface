@@ -10,6 +10,7 @@
 !requirements.txt
 !pytest.ini
 test.py
+qsurface/running
 qsurface/decoders/mwpm/blossom5-v2.05.src/
 !qsurface/decoders/decoders.ini
 qsurface/running/run_script.py
