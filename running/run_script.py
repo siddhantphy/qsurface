@@ -43,8 +43,14 @@ from qsurface.main import initialize, run, run_multiprocess, run_multiprocess_su
                 WEIGHT-3 ARCHITECTURE
    ####################################################'''
 
-code, decoder = initialize((6,4), "weight_4_toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="./qsurface/running/20221031_162325_hc_weight_3_node-s3c_p_g-0.00475_p_m-0.00475merged.csv", initial_states=(0,0))
+code, decoder = initialize((4,4), "weight_4_toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="./running/20221031_162804_hc_weight_3_node-s3c_p_g-0.00475_p_m-0.00475merged.csv", initial_states=(0,0))
 benchmarker = BenchmarkDecoder({
         "decode": ["duration", "value_to_list"],
         "correct_edge": "count_calls",})
-print(run(code, decoder, iterations=50, decode_initial=False, benchmark=benchmarker))
+print(run(code, decoder, iterations=100, decode_initial=False, benchmark=benchmarker))
+
+
+
+
+# code, decoder = initialize((6,6), "toric", "mwpm", plotting=True, enabled_errors=["pauli"])
+# run(code, decoder, iterations=10, error_rates = {"p_bitflip": 0.1})

@@ -1,3 +1,4 @@
+from traceback import print_tb
 from ..elements import AncillaQubit, Round
 from .._template.sim import PerfectMeasurements as TemplatePM, FaultyMeasurements as TemplateFM
 from ...errors.pauli import Sim as Pauli
@@ -155,7 +156,7 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
         """
         sup_op_data = pd.read_csv(filepath, sep = ';')
         self.superoperator_data = (sup_op_data.loc[:, ['error_config', 'ghz_success', 'lie', 'p', 's', 'idle']]).to_dict()
-        self.superoperator_size = list(self.superoperator_data['error_config'].keys())
+        self.superoperator_errors = list(self.superoperator_data['error_config'].keys())
 
 
     """
@@ -177,7 +178,7 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
     def round_noise(self, ancilla: AncillaQubit):
         "Applies noisy superoperator on the current round data and ancilla qubits via each stabilizer ancilla qubit."
         if ancilla.state_type == 'x':
-            choose = random.choices(self.superoperator_size, weights = self.superoperator_data['s'].values())[0] #Choose the index based on fidelity as the weight
+            choose = random.choices(self.superoperator_errors, weights = self.superoperator_data['s'].values())[0] #Choose the index based on fidelity as the weight
             measurement_error = self.superoperator_data['lie'][choose] # Use the above to extract the measurement value as bool out of the above list generated from the row of plaq or star
             error_config = self.superoperator_data['error_config'][choose] # Similar logic as above to get the error configuration as string
             ghz_success = self.superoperator_data['ghz_success'][choose]
@@ -195,7 +196,7 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
                     _pauli.bitphaseflip(data_qubit)
 
         if ancilla.state_type == 'z':
-            choose = random.choices(self.superoperator_size, weights = self.superoperator_data['p'].values())[0] #Choose the index based on fidelity as the weight
+            choose = random.choices(self.superoperator_errors, weights = self.superoperator_data['p'].values())[0] #Choose the index based on fidelity as the weight
             measurement_error = self.superoperator_data['lie'][choose] # Use the above to extract the measurement value as bool out of the above list generated from the row of plaq or star
             error_config = self.superoperator_data['error_config'][choose] # Similar logic as above to get the error configuration as string
             ghz_success = self.superoperator_data['ghz_success'][choose]
@@ -216,7 +217,7 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
 
     def qubit_idling(self, ancilla: AncillaQubit):
         "Applies idling superoperator on the current round data and ancilla qubits via each stabilizer ancilla qubit."
-        choose = random.choices(self.superoperator_size, weights = self.superoperator_data['idle'].values())[0] #Choose the index based on fidelity as the weight
+        choose = random.choices(self.superoperator_errors, weights = self.superoperator_data['idle'].values())[0] #Choose the index based on fidelity as the weight
         error_config = self.superoperator_data['error_config'][choose]
 
         _pauli = Pauli
@@ -250,40 +251,42 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
 
             # Star sequence starts here
             self.superoperator_apply_round(self.rounds_star[self.layer][1])
-            self.superoperator_measure_round(self.rounds_star[self.layer][1])
             self.superoperator_apply_idling(self.rounds_star[self.layer][3])
+            self.superoperator_measure_round(self.rounds_star[self.layer][1])
 
             self.superoperator_apply_round(self.rounds_star[self.layer][2])
-            self.superoperator_measure_round(self.rounds_star[self.layer][2])
             self.superoperator_apply_idling(self.rounds_star[self.layer][4])
+            self.superoperator_measure_round(self.rounds_star[self.layer][2])
 
             self.superoperator_apply_round(self.rounds_star[self.layer][3])
-            self.superoperator_measure_round(self.rounds_star[self.layer][3])
             self.superoperator_apply_idling(self.rounds_star[self.layer][1])
+            self.superoperator_measure_round(self.rounds_star[self.layer][3])
 
             self.superoperator_apply_round(self.rounds_star[self.layer][4])
-            self.superoperator_measure_round(self.rounds_star[self.layer][4])
             self.superoperator_apply_idling(self.rounds_star[self.layer][2])
+            self.superoperator_measure_round(self.rounds_star[self.layer][4])
             # Star sequence ends here
 
             # Plaquette sequence starts here
             self.superoperator_apply_round(self.rounds_plaq[self.layer][1])
-            self.superoperator_measure_round(self.rounds_plaq[self.layer][1])
             self.superoperator_apply_idling(self.rounds_plaq[self.layer][3])
+            self.superoperator_measure_round(self.rounds_plaq[self.layer][1])
 
             self.superoperator_apply_round(self.rounds_plaq[self.layer][2])
-            self.superoperator_measure_round(self.rounds_plaq[self.layer][2])
             self.superoperator_apply_idling(self.rounds_plaq[self.layer][4])
+            self.superoperator_measure_round(self.rounds_plaq[self.layer][2])
 
             self.superoperator_apply_round(self.rounds_plaq[self.layer][3])
-            self.superoperator_measure_round(self.rounds_plaq[self.layer][3])
             self.superoperator_apply_idling(self.rounds_plaq[self.layer][1])
+            self.superoperator_measure_round(self.rounds_plaq[self.layer][3])
 
             self.superoperator_apply_round(self.rounds_plaq[self.layer][4])
-            self.superoperator_measure_round(self.rounds_plaq[self.layer][4])
             self.superoperator_apply_idling(self.rounds_plaq[self.layer][2])
+            self.superoperator_measure_round(self.rounds_plaq[self.layer][4])
             # Plaquette sequence ends here
 
+
+            # self.superoperator_random_measure_layer()
         # Now measure the layer to get the syndrome after all the rounds of current cycle are finished
         self.layer = self.layers - 1
         self.superoperator_random_measure_layer(ideal_measure=True) # Last layer perfect measurements with no round and idling noise.
@@ -296,8 +299,8 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
             self.round_noise(round_ancilla)
                         
         # Measure without measurement errors to identify measurement errors in the next immediate measurements with measurement errors. Helps in plotting visualization
-        for ancilla in self.ancilla_qubits[self.layer].values(): 
-                ancilla.measure(0, 0, False)
+        # for ancilla in self.ancilla_qubits[self.layer].values(): 
+        #         ancilla.measure(0, 0, False)
 
     def superoperator_apply_idling(self, round: Round):
         """ Applies the idle noise to all ancillas in a particular round. """
@@ -312,7 +315,8 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
         for round_ancilla in round.round_ancillas:
             previous_ancilla = self.ancilla_qubits[(round_ancilla.z - 1) % self.layers][round_ancilla.loc]
             if round_ancilla.ghz_success == False:
-                round_ancilla.syndrome = previous_ancilla.syndrome
+                round_ancilla.state = previous_ancilla.state
+                round_ancilla.syndrome = False
             else:
                 if ideal_measure:
                     round_ancilla.super_error = False # Last layer is with perfect measurements
@@ -326,10 +330,12 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
         If the measured state of the current ancilla is not equal to the measured state of the previous instance, the current ancilla is a syndrome."""
         for ancilla in self.ancilla_qubits[self.layer].values():
             previous_ancilla = self.ancilla_qubits[(ancilla.z - 1) % self.layers][ancilla.loc]
-            if ancilla.ghz_success == False:
-                ancilla.syndrome = previous_ancilla.syndrome
+            if ideal_measure:
+                ancilla.super_error = False
+                measured_state = ancilla.measure()
+                ancilla.syndrome = measured_state != previous_ancilla.measured_state
             else:
-                if ideal_measure:
-                    ancilla.super_error = False # Last layer is with perfect measurements
+                if ancilla.ghz_success == False:
+                    ancilla.syndrome = previous_ancilla.syndrome
                 measured_state = ancilla.measure()
                 ancilla.syndrome = measured_state != previous_ancilla.measured_state

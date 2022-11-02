@@ -356,7 +356,7 @@ class Template2D(ABC):
         If the Tkinter backend is enabled or can be enabled, the function returns True. For other backends False is returned.
         """
         backend = mpl.get_backend().lower()
-        if backend in ["tkagg", "qt5agg"]:
+        if backend in ["tkagg", "qt5agg", "qtagg"]:
             return True
         elif "inline" in backend:
             from IPython.display import display
