@@ -32,7 +32,7 @@ def create_phenomenological_toric_superoperator(error_rates: list[float]):
     p_bitflip_star = error_rates[3]
 
     # Rescaling the error rates w.r.t. phenomenological
-    p_bitflip = (1-(1-2*p_bitflip)**(1/4))/2
+    p_bitflip = (1-(1-2*p_bitflip)**(1/8))/2
     p_phaseflip = (1-(1-2*p_phaseflip)**(1/4))/2
 
     errors = {'I':(1-p_bitflip)*(1-p_phaseflip),'X':p_bitflip*(1-p_phaseflip), 'Y':p_bitflip*p_phaseflip, 'Z':p_phaseflip*(1-p_bitflip)}
@@ -62,7 +62,70 @@ def create_phenomenological_toric_superoperator(error_rates: list[float]):
     data_frame = pd.DataFrame(data_dict)
     data_frame.to_csv(f"phenomenological_{error_rates[0]}_{error_rates[1]}_{error_rates[2]}_{error_rates[3]}_toric.csv", sep=';', index=False)
     
-def create_phenomenological_weight_3_toric_superoperator(p_ghz: float = 1, cut_off: float = 0.9, error_rates: list[float] = [0.01,0.01,0.01,0.01,0.01,0.01]):
+def create_phenomenological_weight_4_toric_superoperator(p_ghz: float = 1, error_rates: list[float]=[0.01,0.01,0.01,0.01]):
+    prx = error_rates[0]
+    prz = error_rates[1]
+
+    pm_plaq = error_rates[3]
+    pm_star = error_rates[2]
+
+    # Rescaling the error rates w.r.t. phenomenological
+
+    prx = (1-(1-2*prx)**(1/8))/2
+    prz = (1-(1-2*prz)**(1/8))/2
+
+    round_errors = {'I':(1-prx)*(1-prz),'X':prx*(1-prz), 'Y':prx*prz, 'Z':prz*(1-prx)}
+
+    stabilizers_p = []
+    stabilizers_s = []
+    lie = []
+    ghz_success = []
+    error_config = []
+    error_configs = [''.join(comb) for comb in product(list(round_errors.keys()), repeat=4)]
+
+    for error in error_configs:
+        round_val = 1
+
+        for pauli in error:
+            round_val = round_val * round_errors[pauli]
+
+        new_value = round_val * p_ghz
+        error_config.append(error)
+        stabilizers_p.append(new_value * (1 - pm_plaq) * p_ghz)
+        stabilizers_s.append(new_value * (1 - pm_star) * p_ghz)
+        lie.append(False)
+        ghz_success.append(True)
+        new_value = 1
+
+        new_value = round_val * p_ghz
+        error_config.append(error)
+        stabilizers_p.append(new_value * pm_plaq * p_ghz)
+        stabilizers_s.append(new_value * pm_star * p_ghz)
+        lie.append(True)
+        ghz_success.append(True)
+        new_value = 1
+
+        new_value = round_val * (1 - p_ghz)
+        error_config.append(error)
+        stabilizers_p.append(new_value * (1 - pm_plaq) * (1 - p_ghz))
+        stabilizers_s.append(new_value * (1 - pm_star) * (1 - p_ghz))
+        lie.append(False)
+        ghz_success.append(False)
+        new_value = 1
+
+        new_value = round_val * (1 - p_ghz)
+        error_config.append(error)
+        stabilizers_p.append(new_value * pm_plaq * (1 - p_ghz))
+        stabilizers_s.append(new_value * pm_star * (1 - p_ghz))
+        lie.append(True)
+        ghz_success.append(False)
+        new_value = 1
+
+    data_dict = {'error_config': error_config, 'ghz_success': ghz_success, 'lie': lie, 'p': stabilizers_p, 's': stabilizers_s}
+    data_frame = pd.DataFrame(data_dict)
+    data_frame.to_csv(f"phenomenological_wt_4_toric_px_{error_rates[0]}_pz_{error_rates[1]}_pmx_{error_rates[2]}_pmz_{error_rates[3]}_ghz_{p_ghz}.csv", sep=';', index=False)
+    
+def create_phenomenological_weight_3_toric_superoperator(p_ghz: float = 1, error_rates: list[float] = [0.01,0.01,0.01,0.01,0.01,0.01]):
     px = error_rates[0]
     pz = error_rates[1]
     prx = error_rates[2]
@@ -139,7 +202,7 @@ def create_phenomenological_weight_3_toric_superoperator(p_ghz: float = 1, cut_o
         ghz_success.append(False)
         new_value = 1
 
-    data_dict = {'error_config': error_config, 'ghz_success': ghz_success, 'lie': lie, 'p': stabilizers_p, 's': stabilizers_s, 'idle': idle_noise, 'cut_off': cut_off}
+    data_dict = {'error_config': error_config, 'ghz_success': ghz_success, 'lie': lie, 'p': stabilizers_p, 's': stabilizers_s, 'idle': idle_noise}
     data_frame = pd.DataFrame(data_dict)
     data_frame.to_csv(f"phenomenological_wt_3_toric_px_{error_rates[0]}_pz_{error_rates[1]}_prx_{error_rates[2]}_prz_{error_rates[3]}_pmx_{error_rates[4]}_pmz_{error_rates[5]}_ghz_{p_ghz}.csv", sep=';', index=False)
 

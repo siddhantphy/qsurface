@@ -138,7 +138,7 @@ class AncillaQubit(Qubit):
     def state(self):
         return self.measure()
 
-    def measure(self, p_bitflip_plaq: float = 0, p_bitflip_star: float = 0, super_error = False, **kwargs) -> bool:
+    def measure(self, p_bitflip_plaq: float = 0, p_bitflip_star: float = 0, ideal_measure = False, **kwargs) -> bool:
         """Applies a parity measurement on the ancilla.
 
         The functions loops over all the data qubits in ``self.parity_qubits``. For every edge associated with the entangled state on the data qubit, the value of a ``parity`` boolean is flipped.
@@ -158,7 +158,12 @@ class AncillaQubit(Qubit):
                 parity = not parity
         p_measure = p_bitflip_plaq if self.state_type == "x" else p_bitflip_star
 
-        if super_error or self.super_error:
+        if ideal_measure:
+            self.measured_state = parity
+            self.syndrome = parity
+            return parity
+
+        if self.super_error:
             self.measurement_error = True
         else:
             self.measurement_error = p_measure != 0 and random.random() < p_measure
@@ -257,13 +262,13 @@ class Cell(object):
         self.cell_qubits = qubits
 
     def __repr__(self):
-        return "<{}>".format([qubit for qubit in self.cell_qubits])
+        return "<C{}C>".format([qubit for qubit in self.cell_qubits])
 
 
 class Round(object):
     """A round within a stabilizer cycle that includes a subset of stabilizer measuerments via a`.codes.elements.AncillaQubit` objects"""
     
-    round_type, rep = "DQC Weight-3 round", "<[ ]>"
+    round_type, rep = "DQC stabilizer round", "<[ ]>"
 
     def __init__(self, ancilla_qubits: list[AncillaQubit], **kwargs):
         self.round_ancillas = ancilla_qubits
