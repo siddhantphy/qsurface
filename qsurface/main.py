@@ -71,8 +71,8 @@ def create_phenomenological_weight_4_toric_superoperator(p_ghz: float = 1, error
 
     # Rescaling the error rates w.r.t. phenomenological
 
-    prx = (1-(1-2*prx)**(1/8))/2
-    prz = (1-(1-2*prz)**(1/8))/2
+    prx = (1-(1-2*prx)**(1/4))/2
+    prz = (1-(1-2*prz)**(1/4))/2
 
     round_errors = {'I':(1-prx)*(1-prz),'X':prx*(1-prz), 'Y':prx*prz, 'Z':prz*(1-prx)}
 
@@ -91,32 +91,32 @@ def create_phenomenological_weight_4_toric_superoperator(p_ghz: float = 1, error
 
         new_value = round_val * p_ghz
         error_config.append(error)
-        stabilizers_p.append(new_value * (1 - pm_plaq) * p_ghz)
-        stabilizers_s.append(new_value * (1 - pm_star) * p_ghz)
+        stabilizers_p.append(new_value * (1 - pm_plaq))
+        stabilizers_s.append(new_value * (1 - pm_star))
         lie.append(False)
         ghz_success.append(True)
         new_value = 1
 
         new_value = round_val * p_ghz
         error_config.append(error)
-        stabilizers_p.append(new_value * pm_plaq * p_ghz)
-        stabilizers_s.append(new_value * pm_star * p_ghz)
+        stabilizers_p.append(new_value * pm_plaq)
+        stabilizers_s.append(new_value * pm_star)
         lie.append(True)
         ghz_success.append(True)
         new_value = 1
 
         new_value = round_val * (1 - p_ghz)
         error_config.append(error)
-        stabilizers_p.append(new_value * (1 - pm_plaq) * (1 - p_ghz))
-        stabilizers_s.append(new_value * (1 - pm_star) * (1 - p_ghz))
+        stabilizers_p.append(new_value * (1 - pm_plaq))
+        stabilizers_s.append(new_value * (1 - pm_star))
         lie.append(False)
         ghz_success.append(False)
         new_value = 1
 
         new_value = round_val * (1 - p_ghz)
         error_config.append(error)
-        stabilizers_p.append(new_value * pm_plaq * (1 - p_ghz))
-        stabilizers_s.append(new_value * pm_star * (1 - p_ghz))
+        stabilizers_p.append(new_value * pm_plaq)
+        stabilizers_s.append(new_value * pm_star)
         lie.append(True)
         ghz_success.append(False)
         new_value = 1

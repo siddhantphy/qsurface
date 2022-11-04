@@ -43,17 +43,17 @@ from qsurface.main import initialize, run, run_multiprocess, run_multiprocess_su
                 WEIGHT-3 ARCHITECTURE
    ####################################################'''
 
-# code, decoder = initialize((4,4), "weight_4_toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="./running/20221031_162804_hc_weight_3_node-s3c_p_g-0.00475_p_m-0.00475merged.csv", initial_states=(0,0))
+code, decoder = initialize((4,4), "weight_3_toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="./running/phenomenological_wt_3_toric_px_0.07_pz_0.07_prx_0.07_prz_0.07_pmx_0.07_pmz_0.07_ghz_1.csv", initial_states=(0,0))
 
 # code, decoder = initialize((4,4), "weight_4_toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="./running/phenomenological_wt_4_toric_px_0.07_pz_0.07_pmx_0.07_pmz_0.07_ghz_1.csv", initial_states=(0,0))
-# benchmarker = BenchmarkDecoder({
-#         "decode": ["duration", "value_to_list"],
-#         "correct_edge": "count_calls",})
-# print(run(code, decoder, iterations=2000, decode_initial=False, benchmark=benchmarker))
-
-
-code, decoder = initialize((4,4), "toric", "unionfind", plotting=False, enabled_errors=["pauli"])
 benchmarker = BenchmarkDecoder({
         "decode": ["duration", "value_to_list"],
-        "correct_edge": "count_calls",})
-print(run(code, decoder, iterations=20000, error_rates = {"p_bitflip": 0.07, "p_phaseflip": 0.07, "p_bitflip_plaq": 0.07, "p_bitflip_star": 0.07}, benchmark=benchmarker))
+        "correct_edge": "count_calls"})
+print(run(code, decoder, iterations=2000, decode_initial=False, benchmark=benchmarker))
+
+
+# code, decoder = initialize((4,4), "toric", "unionfind", plotting=False, enabled_errors=["pauli"])
+# benchmarker = BenchmarkDecoder({
+#         "decode": ["duration", "value_to_list"],
+#         "correct_edge": "count_calls"})
+# print(run(code, decoder, iterations=20000, error_rates = {"p_bitflip": 0.07, "p_phaseflip": 0.07, "p_bitflip_plaq": 0.07, "p_bitflip_star": 0.07}, benchmark=benchmarker))
