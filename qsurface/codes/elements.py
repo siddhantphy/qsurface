@@ -131,7 +131,7 @@ class AncillaQubit(Qubit):
         self.measurement_error = False
 
         # Distributed quantum computation (DQC) features
-        self.ghz_success: bool = False
+        self.ghz_success: bool = True
         self.super_error: bool = False
 
     @property

@@ -338,6 +338,8 @@ class Planar(Toric, UFPlanar):
 
     pass
 
+class Weight_0_toric(Toric):
+    pass
 class Weight_3_toric(Toric):
     pass
 

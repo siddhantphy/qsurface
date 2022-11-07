@@ -661,6 +661,8 @@ class Planar(Toric):
                         key, (new_ancilla, edge) = leaf
                         self._edge_peel(edge, variant="peel")
                         self.peel_leaf(cluster, new_ancilla)
+class Weight_0_toric(Toric):
+    pass
 
 class Weight_3_toric(Toric):
     pass

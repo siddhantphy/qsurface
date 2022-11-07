@@ -254,6 +254,8 @@ class Planar(Toric):
         yd = (0, -0.5) if dy > 0 else (0, 0.5)
         return abs(dx), abs(dy), xd, yd
 
+class Weight_0_toric(Toric):
+    pass
 class Weight_3_toric(Toric):
     pass
 

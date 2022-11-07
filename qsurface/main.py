@@ -32,7 +32,7 @@ def create_phenomenological_toric_superoperator(error_rates: list[float]):
     p_bitflip_star = error_rates[3]
 
     # Rescaling the error rates w.r.t. phenomenological
-    p_bitflip = (1-(1-2*p_bitflip)**(1/8))/2
+    p_bitflip = (1-(1-2*p_bitflip)**(1/4))/2
     p_phaseflip = (1-(1-2*p_phaseflip)**(1/4))/2
 
     errors = {'I':(1-p_bitflip)*(1-p_phaseflip),'X':p_bitflip*(1-p_phaseflip), 'Y':p_bitflip*p_phaseflip, 'Z':p_phaseflip*(1-p_bitflip)}
@@ -66,8 +66,8 @@ def create_phenomenological_weight_4_toric_superoperator(p_ghz: float = 1, error
     prx = error_rates[0]
     prz = error_rates[1]
 
-    pm_plaq = error_rates[3]
-    pm_star = error_rates[2]
+    pm_plaq = error_rates[2]
+    pm_star = error_rates[3]
 
     # Rescaling the error rates w.r.t. phenomenological
 
@@ -166,41 +166,33 @@ def create_phenomenological_weight_3_toric_superoperator(p_ghz: float = 1, error
             round_val = round_val * round_errors[pauli]
             idle_val = idle_val * idle_errors[pauli]
 
-        new_value = round_val * p_ghz
         error_config.append(error)
-        idle_noise.append(idle_val)
-        stabilizers_p.append(new_value * (1 - pm_plaq))
-        stabilizers_s.append(new_value * (1 - pm_star))
+        idle_noise.append(idle_val * p_ghz)
+        stabilizers_p.append(round_val * p_ghz * (1 - pm_plaq))
+        stabilizers_s.append(round_val * p_ghz * (1 - pm_star))
         lie.append(False)
         ghz_success.append(True)
-        new_value = 1
 
-        new_value = round_val * p_ghz
         error_config.append(error)
-        idle_noise.append(idle_val)
-        stabilizers_p.append(new_value * pm_plaq)
-        stabilizers_s.append(new_value * pm_star)
+        idle_noise.append(idle_val * p_ghz)
+        stabilizers_p.append(round_val * p_ghz * pm_plaq)
+        stabilizers_s.append(round_val * p_ghz * pm_star)
         lie.append(True)
         ghz_success.append(True)
-        new_value = 1
 
-        new_value = round_val * (1 - p_ghz)
         error_config.append(error)
-        idle_noise.append(idle_val)
-        stabilizers_p.append(new_value * (1 - pm_plaq))
-        stabilizers_s.append(new_value * (1 - pm_star))
+        idle_noise.append(idle_val * (1 - p_ghz))
+        stabilizers_p.append(round_val * (1 - p_ghz) * (1 - pm_plaq))
+        stabilizers_s.append(round_val * (1 - p_ghz) * (1 - pm_star))
         lie.append(False)
         ghz_success.append(False)
-        new_value = 1
 
-        new_value = round_val * (1 - p_ghz)
         error_config.append(error)
-        idle_noise.append(idle_val)
-        stabilizers_p.append(new_value * pm_plaq)
-        stabilizers_s.append(new_value * pm_star)
+        idle_noise.append(idle_val * (1 - p_ghz))
+        stabilizers_p.append(round_val * (1 - p_ghz) * pm_plaq)
+        stabilizers_s.append(round_val * (1 - p_ghz) * pm_star)
         lie.append(True)
         ghz_success.append(False)
-        new_value = 1
 
     data_dict = {'error_config': error_config, 'ghz_success': ghz_success, 'lie': lie, 'p': stabilizers_p, 's': stabilizers_s, 'idle': idle_noise}
     data_frame = pd.DataFrame(data_dict)
