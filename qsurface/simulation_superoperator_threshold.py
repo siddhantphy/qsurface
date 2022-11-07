@@ -1,5 +1,4 @@
 from qsurface.main import initialize, run, BenchmarkDecoder
-from qsurface.decoders import mwpm
 from os import listdir
 from os.path import isfile, join
 import pandas as pd

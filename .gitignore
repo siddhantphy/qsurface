@@ -6,7 +6,7 @@
 *.ini
 *.json
 *.pdf
-*.ipynb
+# *.ipynb
 !requirements.txt
 !pytest.ini
 test.py
