@@ -2,7 +2,6 @@
 Contains functions and classes to run and benchmark surface code simulations and visualizations. Use `initialize` to prepare a surface code and a decoder instance, which can be passed on to `run` and `run_multiprocess` to simulate errors and to decode them with the decoder. 
 """
 from __future__ import annotations
-from copy import deepcopy
 from types import ModuleType
 from typing import List, Optional, Tuple, Union
 from collections import defaultdict
@@ -25,7 +24,7 @@ errors_type = List[Union[str, Error]]
 code_type = codes._template.sim.PerfectMeasurements
 decoder_type = decoders._template.Sim
 
-def create_phenomenological_toric_superoperator(error_rates: list[float]):
+def create_phenomenological_toric_superoperator(error_rates: list[float]=[0.01,0.01,0.01,0.01], serial = None):
     p_bitflip = error_rates[0]
     p_phaseflip = error_rates[1]
     p_bitflip_plaq = error_rates[2]
@@ -60,9 +59,12 @@ def create_phenomenological_toric_superoperator(error_rates: list[float]):
 
     data_dict = {'error_config': error_config, 'lie': lie, 'p': stabilizers_p, 's': stabilizers_s}
     data_frame = pd.DataFrame(data_dict)
-    data_frame.to_csv(f"phenomenological_{error_rates[0]}_{error_rates[1]}_{error_rates[2]}_{error_rates[3]}_toric.csv", sep=';', index=False)
-    
-def create_phenomenological_weight_4_toric_superoperator(p_ghz: float = 1, error_rates: list[float]=[0.01,0.01,0.01,0.01]):
+    if serial is None:
+        data_frame.to_csv(f"phenomenological_wt_0_toric_rates_px_{error_rates[0]}_pz_{error_rates[1]}_pmx_{error_rates[2]}_pmz_{error_rates[3]}.csv", sep=';', index=False)
+    else:
+        data_frame.to_csv(f"{serial}_phenomenological_wt_0_toric_rates_px_{error_rates[0]}_pz_{error_rates[1]}_pmx_{error_rates[2]}_pmz_{error_rates[3]}.csv", sep=';', index=False)
+
+def create_phenomenological_weight_4_toric_superoperator(p_ghz: float = 1, error_rates: list[float]=[0.01,0.01,0.01,0.01], serial = None):
     prx = error_rates[0]
     prz = error_rates[1]
 
@@ -123,9 +125,12 @@ def create_phenomenological_weight_4_toric_superoperator(p_ghz: float = 1, error
 
     data_dict = {'error_config': error_config, 'ghz_success': ghz_success, 'lie': lie, 'p': stabilizers_p, 's': stabilizers_s}
     data_frame = pd.DataFrame(data_dict)
-    data_frame.to_csv(f"phenomenological_wt_4_toric_px_{error_rates[0]}_pz_{error_rates[1]}_pmx_{error_rates[2]}_pmz_{error_rates[3]}_ghz_{p_ghz}.csv", sep=';', index=False)
+    if serial is None:
+        data_frame.to_csv(f"phenomenological_wt_4_toric_rates_px_{error_rates[0]}_pz_{error_rates[1]}_pmx_{error_rates[2]}_pmz_{error_rates[3]}_ghz_{p_ghz}.csv", sep=';', index=False)
+    else:
+        data_frame.to_csv(f"{serial}_phenomenological_wt_4_toric_rates_px_{error_rates[0]}_pz_{error_rates[1]}_pmx_{error_rates[2]}_pmz_{error_rates[3]}_ghz_{p_ghz}.csv", sep=';', index=False)
     
-def create_phenomenological_weight_3_toric_superoperator(p_ghz: float = 1, error_rates: list[float] = [0.01,0.01,0.01,0.01,0.01,0.01]):
+def create_phenomenological_weight_3_toric_superoperator(p_ghz: float = 1, error_rates: list[float] = [0.01,0.01,0.01,0.01,0.01,0.01], serial = None):
     px = error_rates[0]
     pz = error_rates[1]
     prx = error_rates[2]
@@ -196,7 +201,10 @@ def create_phenomenological_weight_3_toric_superoperator(p_ghz: float = 1, error
 
     data_dict = {'error_config': error_config, 'ghz_success': ghz_success, 'lie': lie, 'p': stabilizers_p, 's': stabilizers_s, 'idle': idle_noise}
     data_frame = pd.DataFrame(data_dict)
-    data_frame.to_csv(f"phenomenological_wt_3_toric_px_{error_rates[0]}_pz_{error_rates[1]}_prx_{error_rates[2]}_prz_{error_rates[3]}_pmx_{error_rates[4]}_pmz_{error_rates[5]}_ghz_{p_ghz}.csv", sep=';', index=False)
+    if serial is None:
+        data_frame.to_csv(f"phenomenological_wt_3_toric_rates_px_{error_rates[0]}_pz_{error_rates[1]}_prx_{error_rates[2]}_prz_{error_rates[3]}_pmx_{error_rates[4]}_pmz_{error_rates[5]}_ghz_{p_ghz}.csv", sep=';', index=False)
+    else:
+        data_frame.to_csv(f"{serial}_phenomenological_wt_3_toric_rates_px_{error_rates[0]}_pz_{error_rates[1]}_prx_{error_rates[2]}_prz_{error_rates[3]}_pmx_{error_rates[4]}_pmz_{error_rates[5]}_ghz_{p_ghz}.csv", sep=';', index=False)
 
 
 def initialize(
@@ -450,7 +458,7 @@ def run_multiprocess(
     iterations: int = 1,
     decode_initial: bool = True,
     seed: Optional[float] = None,
-    processes: int = 1,
+    processes: Optional[int]= None,
     benchmark: Optional[BenchmarkDecoder] = None,
     **kwargs,
 ):

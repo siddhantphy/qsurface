@@ -255,7 +255,7 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
                 round_ancilla.measured_state = previous_ancilla.measured_state
                 round_ancilla.syndrome = False
             else:
-                measured_state = round_ancilla.measure(ideal_measure=ideal_measure)
+                measured_state = round_ancilla.measure(p_bitflip_plaq=0, p_bitflip_star=0,ideal_measure=ideal_measure)
                 round_ancilla.syndrome = measured_state != previous_ancilla.measured_state
         return
 
@@ -265,6 +265,6 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
         If the measured state of the current ancilla is not equal to the measured state of the previous instance, the current ancilla is a syndrome."""
         for ancilla in self.ancilla_qubits[self.layer].values():
             previous_ancilla = self.ancilla_qubits[(ancilla.z - 1) % self.layers][ancilla.loc]
-            measured_state = ancilla.measure(ideal_measure=ideal_measure)
+            measured_state = ancilla.measure(p_bitflip_plaq=0, p_bitflip_star=0,ideal_measure=ideal_measure)
             ancilla.syndrome = measured_state != previous_ancilla.measured_state
         return

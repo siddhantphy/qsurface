@@ -169,6 +169,8 @@ class AncillaQubit(Qubit):
             self.measurement_error = p_measure != 0 and random.random() < p_measure
         if self.measurement_error:
             parity = not parity
+            print("FAULT")
+
         self.measured_state = parity
         self.syndrome = parity
         return parity
