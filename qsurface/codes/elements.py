@@ -149,8 +149,8 @@ class AncillaQubit(Qubit):
             Bitflip rate for plaquette (XXXX) operators.
         p_bitflip_star : float
             Bitflip rate for star (ZZZZ) operators.
-        super_error : bool
-            Stores boolean if there is a measurement error in the ancilla measurement in the superoperator usage
+        ideal_measure : bool
+            Stores boolean indicating if there has to be an ideal measurement, by force, when using the superoperator functionality
         """
         parity = False
         for data_qubit in self.parity_qubits.values():
@@ -169,8 +169,6 @@ class AncillaQubit(Qubit):
             self.measurement_error = p_measure != 0 and random.random() < p_measure
         if self.measurement_error:
             parity = not parity
-            print("FAULT")
-
         self.measured_state = parity
         self.syndrome = parity
         return parity

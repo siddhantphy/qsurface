@@ -142,8 +142,18 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
             Relatve/Complete filepath for the superoperator CSV file generated from the circuit simulator
         """
         sup_op_data = pd.read_csv(filepath, sep = ';')
-        self.superoperator_data = (sup_op_data.loc[:, ['error_config', 'ghz_success', 'lie', 'p', 's']]).to_dict()
+        available_columns = [col for col in sup_op_data]
+        if "ghz_success" in available_columns:
+            self.superoperator_data = (sup_op_data.loc[:, ['error_config', 'ghz_success', 'lie', 'p', 's']]).to_dict()
+        else:
+            self.superoperator_data = (sup_op_data.loc[:, ['error_config', 'lie', 'p', 's']]).to_dict()
+            vals = [True for num in list(range(len(list(self.superoperator_data['error_config'].keys()))))]
+            ghz_vals = dict(list(enumerate(vals)))
+            self.superoperator_data["ghz_success"] = ghz_vals
+
         self.superoperator_size = list(range(len(list(self.superoperator_data['error_config'].keys()))))
+        
+        
 
 
     """
