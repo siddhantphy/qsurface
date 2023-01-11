@@ -63,6 +63,9 @@ class PerfectMeasurements(ABC):
 
     instance : float
         Time stamp that is renewed every time `random_errors` is called. Helps with identifying a 'round' of simulation when using class attributes.
+    
+    superoperator_enabled : bool
+        Indicates whether the superoperator functionality is to be used.
     """
 
     _DataQubit = DataQubit

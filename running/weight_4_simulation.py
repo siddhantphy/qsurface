@@ -27,8 +27,8 @@ benchmarker = BenchmarkDecoder({
 plot_points = {}
 for size in SIZES:
         plot_points[size] = []
-file_location = f"./data/weight_4_scattering/"
-export_location = f'./data/weight_4_scattering/computed_data/threshold_weight_4_Scattering_superoperator_data.json'
+file_location = f"./data/weight_4_emission/"
+export_location = f'./data/weight_4_emission/computed_data/threshold_weight_4_Scattering_superoperator_data.json'
 files = [f for f in listdir(file_location) if isfile(join(file_location, f))]
 
 for size in SIZES:

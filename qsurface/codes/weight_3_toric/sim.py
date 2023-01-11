@@ -161,7 +161,8 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
         # Make separate superoperators for idling cases
         self.superoperator_idle_success = (sup_op_data[sup_op_data["ghz_success"] == True]).loc[:,['error_config','idle']].reset_index().to_dict()
         self.superoperator_idle_failed = (sup_op_data[sup_op_data["ghz_success"] == False]).loc[:,['error_config','idle']].reset_index().to_dict()
-        self.superoperator_idle_size = list(range(len(list(self.superoperator_idle_success['error_config'].keys()))))
+        self.superoperator_idle_size_success = list(range(len(list(self.superoperator_idle_success['error_config'].keys()))))
+        self.superoperator_idle_size_failed = list(range(len(list(self.superoperator_idle_failed['error_config'].keys()))))
 
         return
 
@@ -210,10 +211,10 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
     def qubit_idling(self, ancilla: AncillaQubit):
         "Applies idling superoperator on the idling qubits w.r.t. each ancilla."
         if ancilla.ghz_success == True:
-            choose = random.choices(self.superoperator_idle_size, weights = self.superoperator_idle_success['idle'].values())[0] #Choose the index based on fidelity as the weight
+            choose = random.choices(self.superoperator_idle_size_success, weights = self.superoperator_idle_success['idle'].values())[0] #Choose the index based on fidelity as the weight
             error_config = self.superoperator_idle_success['error_config'][choose]
         if ancilla.ghz_success == False:
-            choose = random.choices(self.superoperator_idle_size, weights = self.superoperator_idle_failed['idle'].values())[0] #Choose the index based on fidelity as the weight
+            choose = random.choices(self.superoperator_idle_size_failed, weights = self.superoperator_idle_failed['idle'].values())[0] #Choose the index based on fidelity as the weight
             error_config = self.superoperator_idle_failed['error_config'][choose]
 
         idle_qubits = []

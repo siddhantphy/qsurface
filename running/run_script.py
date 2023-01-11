@@ -51,15 +51,16 @@ benchmarker = BenchmarkDecoder({
 "decode": ["duration", "value_to_list"],
 "correct_edge": "count_calls"})
 
-code, decoder = initialize((6,6), "weight_0_toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="./running/phenomenological_0.025_0.025_0.025_0.025_toric.csv", initial_states=(0,0))
-# code, decoder = initialize((6,6), "weight_3_toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="./running/phenomenological_wt_3_toric_px_0.025_pz_0.025_prx_0.025_prz_0.025_pmx_0.025_pmz_0.025_ghz_1.csv", initial_states=(0,0))
-# code, decoder = initialize((6,6), "weight_4_toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="./running/phenomenological_wt_4_toric_px_0.01_pz_0.01_pmx_0.01_pmz_0.01_ghz_1.csv", initial_states=(0,0))
 
-# print(run(code, decoder, iterations=5000, decode_initial=False, benchmark=benchmarker))
+# code, decoder = initialize((8,8), "weight_0_toric", "unionfind",layers=1, plotting=False, superoperator_enable=True, sup_op_file="./running/phenomenological_wt_0_toric_rates_px_0.03_pz_0.03_pmx_0.03_pmz_0.03.csv", initial_states=(0,0))
+# code, decoder = initialize((20,20), "weight_3_toric", "mwpm",layers=100, plotting=False, superoperator_enable=True, sup_op_file="./running/phenomenological_wt_3_toric_rates_px_0.09_pz_0.09_prx_0.09_prz_0.09_pmx_0_pmz_0_ghz_1.csv", initial_states=(0,0))
+code, decoder = initialize((8,8), "weight_4_toric", "unionfind",layers=1, plotting=False, superoperator_enable=True, sup_op_file="./running/phenomenological_wt_4_toric_rates_px_0.03_pz_0.03_pmx_0.03_pmz_0.03_ghz_1.csv", initial_states=(0,0))
+
+print(run(code, decoder, iterations=100,decode_initial=True, benchmark=benchmarker))
 
 
-# code, decoder = initialize((6,6), "toric", "unionfind", plotting=False, enabled_errors=["pauli"], faulty_measurements=True)
-# print(run(code, decoder, iterations=1000, decode_initial=False, error_rates = {"p_bitflip": 0.07, "p_phaseflip": 0.07, "p_bitflip_plaq": 0.07, "p_bitflip_star": 0.07}, benchmark=benchmarker))
+# code, decoder = initialize((6,6), "toric", "unionfind",layers=2, plotting=False, enabled_errors=["pauli"], faulty_measurements=True)
+# print(run(code, decoder, iterations=10000,decode_initial=True, error_rates = {"p_bitflip": 0.09, "p_phaseflip": 0.09, "p_bitflip_plaq": 0, "p_bitflip_star": 0 }, benchmark=benchmarker))
 
 '''####################################################
         WEIGHT-X ARCHITECTURES' VERIFICATION
