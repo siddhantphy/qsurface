@@ -164,7 +164,6 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
         self.superoperator_idle_size_success = list(range(len(list(self.superoperator_idle_success['error_config'].keys()))))
         self.superoperator_idle_size_failed = list(range(len(list(self.superoperator_idle_failed['error_config'].keys()))))
 
-        print(self.superoperator_idle_size_failed)
         return
 
     """
