@@ -50,14 +50,16 @@ import numpy as np
 benchmarker = BenchmarkDecoder({
 "decode": ["duration", "value_to_list"],
 "correct_edge": "count_calls"})
-
+iters=1
 
 # code, decoder = initialize((8,8), "weight_0_toric", "unionfind",layers=1, plotting=False, superoperator_enable=True, sup_op_file="./running/phenomenological_wt_0_toric_rates_px_0.03_pz_0.03_pmx_0.03_pmz_0.03.csv", initial_states=(0,0))
 # code, decoder = initialize((20,20), "weight_3_toric", "mwpm",layers=100, plotting=False, superoperator_enable=True, sup_op_file="./running/phenomenological_wt_3_toric_rates_px_0.09_pz_0.09_prx_0.09_prz_0.09_pmx_0_pmz_0_ghz_1.csv", initial_states=(0,0))
-code, decoder = initialize((8,8), "weight_4_toric", "unionfind",layers=1, plotting=False, superoperator_enable=True, sup_op_file="./running/phenomenological_wt_4_toric_rates_px_0.03_pz_0.03_pmx_0.03_pmz_0.03_ghz_1.csv", initial_states=(0,0))
+code, decoder = initialize((6,6), "weight_3_toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="./running/phenomenological_wt_3_toric_rates_px_0.03_pz_0.03_prx_0.03_prz_0.03_pmx_0.03_pmz_0.03_ghz_0.98.csv", initial_states=(0,0), seed=500)
+print(run(code, decoder, iterations=iters,decode_initial=True, benchmark=benchmarker)['no_error']/iters)
 
-print(run(code, decoder, iterations=100,decode_initial=True, benchmark=benchmarker))
+# 0.574 with seed=500
 
+# print(code.rounds_plaq[0][1].round_ancillas[0].parity_qubits)
 
 # code, decoder = initialize((6,6), "toric", "unionfind",layers=2, plotting=False, enabled_errors=["pauli"], faulty_measurements=True)
 # print(run(code, decoder, iterations=10000,decode_initial=True, error_rates = {"p_bitflip": 0.09, "p_phaseflip": 0.09, "p_bitflip_plaq": 0, "p_bitflip_star": 0 }, benchmark=benchmarker))

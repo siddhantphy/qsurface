@@ -164,6 +164,7 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
         self.superoperator_idle_size_success = list(range(len(list(self.superoperator_idle_success['error_config'].keys()))))
         self.superoperator_idle_size_failed = list(range(len(list(self.superoperator_idle_failed['error_config'].keys()))))
 
+        print(self.superoperator_idle_size_failed)
         return
 
     """
@@ -224,33 +225,11 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
 
         if ancilla.state_type == 'z':
             neighbors = list(ancilla.parity_qubits.values())
-            for cell in self.cells[self.layer].values():
-                cell_qubits = cell.cell_qubits
-                if neighbors[0] in cell_qubits:
-                    first_idle_cell = cell # First qubit idling cell found
-                if neighbors[2] in cell_qubits:
-                    second_idle_cell = cell # Second qubit idling cell found
-                if cell_qubits[0] in list(self.ancilla_qubits[self.layer][((ancilla.loc[0]+1)%self.size[0], (ancilla.loc[1]+1)%self.size[1])].parity_qubits.values()):
-                    if cell_qubits[1] in list(self.ancilla_qubits[self.layer][((ancilla.loc[0]+1)%self.size[0], (ancilla.loc[1]+1)%self.size[1])].parity_qubits.values()):
-                        third_idle_cell = cell # Third and fourth idling cell found (same)
-            
-            # The last two qubits are fully idle, do not depend on GHZ success/failure. The first two depend on the success!
-            idle_qubits = [first_idle_cell.cell_qubits[0], second_idle_cell.cell_qubits[1], third_idle_cell.cell_qubits[0], third_idle_cell.cell_qubits[1]]
+            idle_qubits = [neighbors[0], neighbors[3], neighbors[2], neighbors[1]]
 
         if ancilla.state_type == 'x':
             neighbors = list(ancilla.parity_qubits.values())
-            for cell in self.cells[self.layer].values():
-                cell_qubits = cell.cell_qubits
-                if neighbors[1] in cell_qubits:
-                    first_idle_cell = cell # First qubit idling cell found
-                if neighbors[3] in cell_qubits:
-                    second_idle_cell = cell # Second qubit idling cell found
-                if cell_qubits[0] in list(self.ancilla_qubits[self.layer][((ancilla.loc[0]-1)%self.size[0], (ancilla.loc[1]-1)%self.size[1])].parity_qubits.values()):
-                    if cell_qubits[1] in list(self.ancilla_qubits[self.layer][((ancilla.loc[0]-1)%self.size[0], (ancilla.loc[1]-1)%self.size[1])].parity_qubits.values()):
-                        third_idle_cell = cell # Third and fourth idling cell found (same)
-        
-            # The last two qubits are fully idle, do not depend on GHZ success/failure. The first two depend on the success!
-            idle_qubits = [first_idle_cell.cell_qubits[1], second_idle_cell.cell_qubits[0], third_idle_cell.cell_qubits[0], third_idle_cell.cell_qubits[1]]
+            idle_qubits = [neighbors[2], neighbors[1], neighbors[0], neighbors[3]]
 
         _pauli = Pauli
         for serial, idle_qubit in zip(range(4), idle_qubits):
