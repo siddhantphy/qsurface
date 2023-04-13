@@ -219,9 +219,6 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
             error_config = self.superoperator_idle_failed['error_config'][choose]
 
         idle_qubits = []
-        first_idle_cell = None
-        second_idle_cell = None
-        third_idle_cell = None 
 
         if ancilla.state_type == 'z':
             neighbors = list(ancilla.parity_qubits.values())
