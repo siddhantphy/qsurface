@@ -281,14 +281,14 @@ class PerfectMeasurements(ABC):
     def add_cell(self, qubits: list[DataQubit], z: float = 0, index: float = 0, **kwargs) -> Cell:
         cell = self._Cell(qubits, **kwargs)
         self.cells[z][index] = cell
-        return
+        return cell
 
-    def add_round_plaq(self, ancillas: list[AncillaQubit],  z: float = 0, serial: float = 0, **kwargs) -> Round:
+    def add_round_plaq(self, ancillas: list[AncillaQubit],  z: float = 0, serial: float = 0, **kwargs):
         round = self._Round(ancillas, **kwargs)
         self.rounds_plaq[z][serial] = round
         return
     
-    def add_round_star(self, ancillas: list[AncillaQubit],  z: float = 0, serial: float = 0, **kwargs) -> Round:
+    def add_round_star(self, ancillas: list[AncillaQubit],  z: float = 0, serial: float = 0, **kwargs):
         round = self._Round(ancillas, **kwargs)
         self.rounds_star[z][serial] = round
         return

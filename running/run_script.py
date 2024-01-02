@@ -50,14 +50,18 @@ import numpy as np
 benchmarker = BenchmarkDecoder({
 "decode": ["duration", "value_to_list"],
 "correct_edge": "count_calls"})
-iters=1
+iters=1000
 
 # code, decoder = initialize((8,8), "weight_0_toric", "unionfind",layers=1, plotting=False, superoperator_enable=True, sup_op_file="./running/phenomenological_wt_0_toric_rates_px_0.03_pz_0.03_pmx_0.03_pmz_0.03.csv", initial_states=(0,0))
 # code, decoder = initialize((20,20), "weight_3_toric", "mwpm",layers=100, plotting=False, superoperator_enable=True, sup_op_file="./running/phenomenological_wt_3_toric_rates_px_0.09_pz_0.09_prx_0.09_prz_0.09_pmx_0_pmz_0_ghz_1.csv", initial_states=(0,0))
-code, decoder = initialize((6,6), "weight_3_toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="./running/phenomenological_wt_3_toric_rates_px_0.03_pz_0.03_prx_0.03_prz_0.03_pmx_0.03_pmz_0.03_ghz_0.98.csv", initial_states=(0,0), seed=500)
+# 1M case
+code, decoder = initialize((6,6), "weight_3_toric", "mwpm", plotting=False, superoperator_enable=True, sup_op_file="./running/20231109_071924_hc_weight_3_direct_node-ss1eq_network_noise_type-60_p_g-0.002_p_m-0.002_cut_off_time-0.0041641_merged.csv", initial_states=(0,0), seed=500)
+# 1.75M case
+# code, decoder = initialize((6,6), "weight_3_toric", "unionfind", plotting=False, superoperator_enable=True, sup_op_file="./running/20231109_071925_hc_weight_3_direct_node-ss1eq_network_noise_type-60_p_g-0.002_p_m-0.002_cut_off_time-0.0041641_merged.csv", initial_states=(0,0), seed=500)
+
 print(run(code, decoder, iterations=iters,decode_initial=True, benchmark=benchmarker)['no_error']/iters)
 
-# 0.574 with seed=500
+# print(code.data_qubits[0][(0.5,0)].edges['z'].nodes)
 
 # print(code.rounds_plaq[0][1].round_ancillas[0].parity_qubits)
 

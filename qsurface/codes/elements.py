@@ -54,9 +54,8 @@ class DataQubit(Qubit):
         super().__init__(*args, **kwargs)
         self.edges = {}
         self.reinitialized = True
+        self.cell = None
 
-    # def __repr__(self):
-    #     return f"{self.qubit_type}[{self.edges['x']},{self.edges['z']}]({self.loc[0]},{self.loc[1]}|{self.z})"
 
     def _reinitialize(self, initial_states: Tuple[float, float] = (None, None), **kwargs):
         """Resets this qubit's attributes."""

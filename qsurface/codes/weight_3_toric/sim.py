@@ -44,7 +44,9 @@ class PerfectMeasurements(TemplatePM):
         index = 1
         for y in range(self.size[1]):
             for x in range(self.size[0]):
-                self.add_cell([self.data_qubits[z][(x + 0.5, y)], self.data_qubits[z][(x, y + 0.5)]], z=z, index=index, **kwargs)
+                cell = self.add_cell([self.data_qubits[z][(x + 0.5, y)], self.data_qubits[z][(x, y + 0.5)]], z=z, index=index, **kwargs)
+                self.data_qubits[z][(x + 0.5, y)].cell = cell
+                self.data_qubits[z][(x, y + 0.5)].cell = cell
                 index += 1
         del index
         # The size is even X even for weight-3 architecture
@@ -208,24 +210,44 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
         return
 
 
-    def qubit_idling(self, ancilla: AncillaQubit):
-        "Applies idling superoperator on the idling qubits w.r.t. each ancilla."
-        if ancilla.ghz_success == True:
+    def qubit_idling(self, round_ancilla: AncillaQubit, idle_ancilla: AncillaQubit):
+        "Applies idling superoperator on the idling qubits w.r.t. each round_ancilla to the stabilizer of the idling ancilla."
+        if round_ancilla.ghz_success == True:
             choose = random.choices(self.superoperator_idle_size_success, weights = self.superoperator_idle_success['idle'].values())[0] #Choose the index based on fidelity as the weight
             error_config = self.superoperator_idle_success['error_config'][choose]
-        if ancilla.ghz_success == False:
+        if round_ancilla.ghz_success == False:
             choose = random.choices(self.superoperator_idle_size_failed, weights = self.superoperator_idle_failed['idle'].values())[0] #Choose the index based on fidelity as the weight
             error_config = self.superoperator_idle_failed['error_config'][choose]
 
         idle_qubits = []
 
-        if ancilla.state_type == 'z':
-            neighbors = list(ancilla.parity_qubits.values())
-            idle_qubits = [neighbors[0], neighbors[3], neighbors[2], neighbors[1]]
+        if round_ancilla.state_type == 'z':
+            neighbors = list(round_ancilla.parity_qubits.values())
+            if neighbors[1] and neighbors[3] in neighbors[1].cell.cell_qubits:
+                idle_qubit_1 = neighbors[0].cell.cell_qubits[0]
+                idle_qubit_2 = neighbors[2].cell.cell_qubits[-1]
+            else:
+                print("Error with the weight-3 data qubit mapping! Check the superoperator or qubit ordering.")
 
-        if ancilla.state_type == 'x':
-            neighbors = list(ancilla.parity_qubits.values())
-            idle_qubits = [neighbors[2], neighbors[1], neighbors[0], neighbors[3]]
+            fully_idle_cell = list(idle_ancilla.parity_qubits.values())[1].cell
+            fully_idle_qubit_1 = fully_idle_cell.cell_qubits[0]
+            fully_idle_qubit_2 = fully_idle_cell.cell_qubits[1]
+
+            idle_qubits = [idle_qubit_1, idle_qubit_2, fully_idle_qubit_1, fully_idle_qubit_2]
+
+        if round_ancilla.state_type == 'x':
+            neighbors = list(round_ancilla.parity_qubits.values())
+            if neighbors[0] and neighbors[2] in neighbors[0].cell.cell_qubits:
+                idle_qubit_1 = neighbors[1].cell.cell_qubits[-1]
+                idle_qubit_2 = neighbors[3].cell.cell_qubits[0]
+            else:
+                print("Error with the weight-3 data qubit mapping! Check the superoperator or qubit ordering.")
+
+            fully_idle_cell = list(idle_ancilla.parity_qubits.values())[0].cell
+            fully_idle_qubit_1 = fully_idle_cell.cell_qubits[0]
+            fully_idle_qubit_2 = fully_idle_cell.cell_qubits[1]
+
+            idle_qubits = [idle_qubit_1, idle_qubit_2, fully_idle_qubit_1, fully_idle_qubit_2]
 
         _pauli = Pauli
         for serial, idle_qubit in zip(range(4), idle_qubits):
@@ -258,37 +280,37 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
 
             # Star sequence starts here
             self.superoperator_apply_round(self.rounds_star[self.layer][1])
-            self.superoperator_apply_idling(self.rounds_star[self.layer][1])
+            self.superoperator_apply_idling(self.rounds_star[self.layer][1], self.rounds_star[self.layer][3])
             self.superoperator_measure_round(self.rounds_star[self.layer][1])
 
             self.superoperator_apply_round(self.rounds_star[self.layer][2])
-            self.superoperator_apply_idling(self.rounds_star[self.layer][2])
+            self.superoperator_apply_idling(self.rounds_star[self.layer][2], self.rounds_star[self.layer][4])
             self.superoperator_measure_round(self.rounds_star[self.layer][2])
 
             self.superoperator_apply_round(self.rounds_star[self.layer][3])
-            self.superoperator_apply_idling(self.rounds_star[self.layer][3])
+            self.superoperator_apply_idling(self.rounds_star[self.layer][3], self.rounds_star[self.layer][1])
             self.superoperator_measure_round(self.rounds_star[self.layer][3])
 
             self.superoperator_apply_round(self.rounds_star[self.layer][4])
-            self.superoperator_apply_idling(self.rounds_star[self.layer][4])
+            self.superoperator_apply_idling(self.rounds_star[self.layer][4], self.rounds_star[self.layer][2])
             self.superoperator_measure_round(self.rounds_star[self.layer][4])
             # Star sequence ends here
 
             # Plaquette sequence starts here
             self.superoperator_apply_round(self.rounds_plaq[self.layer][1])
-            self.superoperator_apply_idling(self.rounds_plaq[self.layer][1])
+            self.superoperator_apply_idling(self.rounds_plaq[self.layer][1], self.rounds_plaq[self.layer][3])
             self.superoperator_measure_round(self.rounds_plaq[self.layer][1])
 
             self.superoperator_apply_round(self.rounds_plaq[self.layer][2])
-            self.superoperator_apply_idling(self.rounds_plaq[self.layer][2])
+            self.superoperator_apply_idling(self.rounds_plaq[self.layer][2], self.rounds_plaq[self.layer][4])
             self.superoperator_measure_round(self.rounds_plaq[self.layer][2])
 
             self.superoperator_apply_round(self.rounds_plaq[self.layer][3])
-            self.superoperator_apply_idling(self.rounds_plaq[self.layer][3])
+            self.superoperator_apply_idling(self.rounds_plaq[self.layer][3], self.rounds_plaq[self.layer][1])
             self.superoperator_measure_round(self.rounds_plaq[self.layer][3])
 
             self.superoperator_apply_round(self.rounds_plaq[self.layer][4])
-            self.superoperator_apply_idling(self.rounds_plaq[self.layer][4])
+            self.superoperator_apply_idling(self.rounds_plaq[self.layer][4], self.rounds_plaq[self.layer][2])
             self.superoperator_measure_round(self.rounds_plaq[self.layer][4])
             # Plaquette sequence ends here
 
@@ -300,28 +322,28 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
 
         # Apply the data qubit noise
         self.superoperator_apply_round(self.rounds_star[self.layer][1])
-        self.superoperator_apply_idling(self.rounds_star[self.layer][1])
+        self.superoperator_apply_idling(self.rounds_star[self.layer][1], self.rounds_star[self.layer][3])
         
         self.superoperator_apply_round(self.rounds_star[self.layer][2])
-        self.superoperator_apply_idling(self.rounds_star[self.layer][2])
+        self.superoperator_apply_idling(self.rounds_star[self.layer][2], self.rounds_star[self.layer][4])
         
         self.superoperator_apply_round(self.rounds_star[self.layer][3])
-        self.superoperator_apply_idling(self.rounds_star[self.layer][3])
+        self.superoperator_apply_idling(self.rounds_star[self.layer][3], self.rounds_star[self.layer][1])
         
         self.superoperator_apply_round(self.rounds_star[self.layer][4])
-        self.superoperator_apply_idling(self.rounds_star[self.layer][4])
+        self.superoperator_apply_idling(self.rounds_star[self.layer][4], self.rounds_star[self.layer][2])
 
         self.superoperator_apply_round(self.rounds_plaq[self.layer][1])
-        self.superoperator_apply_idling(self.rounds_plaq[self.layer][1])
+        self.superoperator_apply_idling(self.rounds_plaq[self.layer][1], self.rounds_plaq[self.layer][3])
         
         self.superoperator_apply_round(self.rounds_plaq[self.layer][2])
-        self.superoperator_apply_idling(self.rounds_plaq[self.layer][2])
+        self.superoperator_apply_idling(self.rounds_plaq[self.layer][2], self.rounds_plaq[self.layer][4])
         
         self.superoperator_apply_round(self.rounds_plaq[self.layer][3])
-        self.superoperator_apply_idling(self.rounds_plaq[self.layer][3])
+        self.superoperator_apply_idling(self.rounds_plaq[self.layer][3], self.rounds_plaq[self.layer][1])
         
         self.superoperator_apply_round(self.rounds_plaq[self.layer][4])
-        self.superoperator_apply_idling(self.rounds_plaq[self.layer][4])
+        self.superoperator_apply_idling(self.rounds_plaq[self.layer][4], self.rounds_plaq[self.layer][2])
         
         for ancilla in self.ancilla_qubits[self.layers - 1].values():
             ancilla.super_error = False # reset the errors imposed by the noise layer
@@ -336,10 +358,10 @@ class FaultyMeasurements(TemplateFM, PerfectMeasurements):
             self.round_noise(round_ancilla)
         return
 
-    def superoperator_apply_idling(self, round: Round):
+    def superoperator_apply_idling(self, round: Round, idle: Round):
         """ Applies the idle noise to all ancillas in a particular round. """
-        for idle_ancilla in round.round_ancillas:
-            self.qubit_idling(idle_ancilla)
+        for round_ancilla, idle_ancilla in zip(round.round_ancillas, idle.round_ancillas):
+            self.qubit_idling(round_ancilla, idle_ancilla)
         return
 
     def superoperator_measure_round(self, round: Round, ideal_measure = False):
