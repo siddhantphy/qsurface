@@ -493,6 +493,7 @@ def run_multiprocess(
     if processes is None:
         processes = cpu_count()
     process_iters = iterations // processes
+    remaining_iterations = iterations - process_iters * processes
     if process_iters == 0:
         print("Please select more iterations")
         return
@@ -510,6 +511,8 @@ def run_multiprocess(
     mp_queue = Queue()
     workers = []
     for process in range(processes):
+        if process < remaining_iterations:
+            process_iters += 1
         workers.append(
             Process(
                 target=run,
