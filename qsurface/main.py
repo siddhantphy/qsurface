@@ -511,14 +511,15 @@ def run_multiprocess(
     mp_queue = Queue()
     workers = []
     for process in range(processes):
+        iters = process_iters
         if process < remaining_iterations:
-            process_iters += 1
+            iters += 1
         workers.append(
             Process(
                 target=run,
                 args=(code, decoder),
                 kwargs={
-                    "iterations": process_iters,
+                    "iterations": iters,
                     "decode_initial": False,
                     "seed": seed,
                     "mp_process": process,
